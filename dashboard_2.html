@@ -1,0 +1,1447 @@
+<title>Coupon Performance Dashboard</title>
+<style>
+  :root{
+    color-scheme: light;
+    --page:            #f9f9f7;
+    --surface-1:       #fcfcfb;
+    --surface-2:       #f3f2ee;
+    --text-primary:    #0b0b0b;
+    --text-secondary:  #52514e;
+    --text-muted:      #898781;
+    --gridline:        #e1e0d9;
+    --baseline:        #c3c2b7;
+    --border:          rgba(11,11,11,0.10);
+    --series-1:        #0060fd; /* discount coupon - brand blue */
+    --series-1-wash:   rgba(0,96,253,0.10);
+    --series-2:        #c68400; /* point coupon - brand gold */
+    --series-2-wash:   rgba(198,132,0,0.10);
+    --series-3:        #1baf7a; /* BU: Amaze Mall */
+    --series-4:        #eda100; /* BU: ODM */
+    --series-5:        #e87ba4; /* BU: CPG Mall */
+    --series-6:        #008300; /* BU: DG */
+    --status-good:     #0ca30c;
+    --status-good-wash:rgba(12,163,12,0.12);
+    --status-warning:  #b9790a;
+    --status-warning-wash: rgba(250,178,25,0.18);
+    --status-serious:  #c85a2e;
+    --status-serious-wash: rgba(236,131,90,0.16);
+    --status-critical: #d03b3b;
+    --status-critical-wash: rgba(208,59,59,0.12);
+    --success-text:    #006300;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      color-scheme: dark;
+      --page:            #0d0d0d;
+      --surface-1:       #1a1a19;
+      --surface-2:       #212120;
+      --text-primary:    #ffffff;
+      --text-secondary:  #c3c2b7;
+      --text-muted:      #8f8d86;
+      --gridline:        #2c2c2a;
+      --baseline:        #383835;
+      --border:          rgba(255,255,255,0.10);
+      --series-1:        #2e8cff; /* discount coupon - brand blue */
+      --series-1-wash:   rgba(46,140,255,0.14);
+      --series-2:        #bf8a10; /* point coupon - brand gold */
+      --series-2-wash:   rgba(191,138,16,0.16);
+      --series-3:        #199e70;
+      --series-4:        #c98500;
+      --series-5:        #d55181;
+      --series-6:        #008300;
+      --status-good:     #0ca30c;
+      --status-good-wash:rgba(12,163,12,0.16);
+      --status-warning:  #fab219;
+      --status-warning-wash: rgba(250,178,25,0.16);
+      --status-serious:  #ec835a;
+      --status-serious-wash: rgba(236,131,90,0.16);
+      --status-critical: #e66767;
+      --status-critical-wash: rgba(230,103,103,0.16);
+      --success-text:    #0ca30c;
+    }
+  }
+  :root[data-theme="dark"]{
+    color-scheme: dark;
+    --page:            #0d0d0d;
+    --surface-1:       #1a1a19;
+    --surface-2:       #212120;
+    --text-primary:    #ffffff;
+    --text-secondary:  #c3c2b7;
+    --text-muted:      #8f8d86;
+    --gridline:        #2c2c2a;
+    --baseline:        #383835;
+    --border:          rgba(255,255,255,0.10);
+    --series-1:        #2e8cff; /* discount coupon - brand blue */
+    --series-1-wash:   rgba(46,140,255,0.14);
+    --series-2:        #bf8a10; /* point coupon - brand gold */
+    --series-2-wash:   rgba(191,138,16,0.16);
+    --series-3:        #199e70;
+    --series-4:        #c98500;
+    --series-5:        #d55181;
+    --series-6:        #008300;
+    --status-good:     #0ca30c;
+    --status-good-wash:rgba(12,163,12,0.16);
+    --status-warning:  #fab219;
+    --status-warning-wash: rgba(250,178,25,0.16);
+    --status-serious:  #ec835a;
+    --status-serious-wash: rgba(236,131,90,0.16);
+    --status-critical: #e66767;
+    --status-critical-wash: rgba(230,103,103,0.16);
+    --success-text:    #0ca30c;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--page);
+    color:var(--text-primary);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding-inline:20px;
+    padding-block:0 32px;
+    max-width:1280px;
+    margin-inline:auto;
+  }
+  h1,h2,h3{font-weight:650; text-wrap:balance;}
+  p{color:var(--text-secondary); line-height:1.5;}
+  .muted{color:var(--text-muted);}
+  a{color:var(--series-1);}
+
+  /* ---------- header ---------- */
+  header.top{
+    position:sticky; top:env(safe-area-inset-top,0px); z-index:30;
+    background:var(--page);
+    padding-block:18px 12px;
+    border-bottom:1px solid var(--border);
+    margin-bottom:20px;
+  }
+  .eyebrow{
+    font-size:12px; letter-spacing:0.06em; text-transform:uppercase;
+    color:var(--text-muted); font-weight:600; margin:0 0 4px;
+  }
+  header.top h1{font-size:clamp(20px,3vw,28px); margin:0 0 4px;}
+  header.top .sub{font-size:13.5px; margin:0; color:var(--text-secondary);}
+  nav.tabs{
+    display:flex; gap:4px; margin-top:14px; flex-wrap:wrap;
+    border-top:1px solid var(--border); padding-top:10px;
+  }
+  nav.tabs a{
+    text-decoration:none; color:var(--text-secondary); font-size:13.5px; font-weight:600;
+    padding:7px 12px; border-radius:8px;
+  }
+  nav.tabs a:hover{background:var(--surface-2); color:var(--text-primary);}
+
+  section{scroll-margin-top:120px; margin-bottom:44px;}
+  .section-head{display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px;}
+  .section-head h2{font-size:19px; margin:0;}
+  .section-head .desc{font-size:13px; margin:2px 0 0; max-width:60ch;}
+  .type-chip{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; padding:3px 10px; border-radius:999px;}
+  .type-chip.discount{background:var(--series-1-wash); color:var(--series-1);}
+  .type-chip.point{background:var(--series-2-wash); color:var(--series-2);}
+  .type-chip .dot{width:8px; height:8px; border-radius:50%; background:currentColor;}
+
+  /* ---------- filter row ---------- */
+  .filter-row{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+    margin-bottom:18px; padding:10px 14px; background:var(--surface-1);
+    border:1px solid var(--border); border-radius:12px;
+  }
+  .filter-row .label{font-size:12.5px; font-weight:600; color:var(--text-muted);}
+  .seg{display:inline-flex; background:var(--surface-2); border-radius:9px; padding:3px; gap:2px;}
+  .seg button{
+    border:0; background:transparent; color:var(--text-secondary); font:inherit; font-size:13px; font-weight:600;
+    padding:6px 13px; border-radius:7px; cursor:pointer;
+  }
+  .seg button.active{background:var(--surface-1); color:var(--text-primary); box-shadow:0 1px 2px var(--border);}
+  .filter-row .note{font-size:12px; color:var(--text-muted); margin-left:auto;}
+
+  /* ---------- KPI tiles ---------- */
+  .kpi-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:10px;}
+  .kpi{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:12px;
+    padding:14px 15px; display:flex; flex-direction:column; gap:6px; min-width:0;
+  }
+  .kpi .label{font-size:12px; color:var(--text-muted); font-weight:600;}
+  .kpi .value{font-size:22px; font-weight:700; letter-spacing:-0.01em;}
+  .kpi .delta{font-size:12px; font-weight:700; display:flex; align-items:center; gap:4px;}
+  .kpi .delta.up{color:var(--success-text);}
+  .kpi .delta.down{color:var(--status-critical);}
+  .kpi .delta.flat{color:var(--text-muted);}
+  .kpi svg.spark{width:100%; height:26px; display:block;}
+  .kpi .sub{font-size:11.5px; color:var(--text-muted);}
+
+  /* ---------- cards / charts ---------- */
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:14px;}
+  .grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  @media (max-width:820px){ .grid-2, .grid-3{grid-template-columns:1fr;} }
+  figure.chart-card{
+    background:var(--surface-1); border:1px solid var(--border); border-radius:12px;
+    padding:16px 16px 12px; margin:0;
+  }
+  figure.chart-card h3{font-size:14.5px; margin:0 0 2px;}
+  figure.chart-card .cap{font-size:12px; color:var(--text-muted); margin:0 0 10px;}
+  figure.chart-card svg{width:100%; height:auto; display:block; overflow:visible;}
+  .legend{display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:12px; color:var(--text-secondary);}
+  .legend .item{display:flex; align-items:center; gap:6px; color:var(--text-secondary);}
+  .legend .swatch{width:12px; height:3px; border-radius:2px; background:var(--text-muted);}
+  .legend .item.discount .swatch{background:var(--series-1);}
+  .legend .item.point .swatch{background:var(--series-2);}
+  .legend .item.dot .swatch{width:9px; height:9px; border-radius:50%;}
+
+  .grid-line{stroke:var(--gridline); stroke-width:1;}
+  .axis-line{stroke:var(--baseline); stroke-width:1;}
+  .chart-text{fill:var(--text-muted); font-size:10.5px;}
+  .chart-text-strong{fill:var(--text-secondary); font-size:11px; font-weight:600;}
+  .seg-label{font-size:10.5px; font-weight:700;}
+  .mark-discount{fill:var(--series-1);}
+  .mark-point{fill:var(--series-2);}
+  .mark-muted{fill:var(--text-muted);}
+  .quad-niche{fill:var(--text-muted);}
+  .mark-series-3{fill:var(--series-3);}
+  .mark-series-4{fill:var(--series-4);}
+  .mark-series-5{fill:var(--series-5);}
+  .mark-series-6{fill:var(--series-6);}
+  .line-discount{stroke:var(--series-1); fill:none; stroke-width:2;}
+  .line-point{stroke:var(--series-2); fill:none; stroke-width:2;}
+  .area-discount{fill:var(--series-1); opacity:0.10;}
+  .area-point{fill:var(--series-2); opacity:0.10;}
+  .ring{stroke:var(--surface-1); stroke-width:2;}
+  .bar-hit{cursor:pointer;}
+  .bar-hit:hover, .pt-hit:hover{opacity:0.82;}
+  .quad-good{fill:var(--status-good);}
+  .quad-warning{fill:var(--status-warning);}
+  .quad-serious{fill:var(--status-serious);}
+  .quad-critical{fill:var(--status-critical);}
+  .cum-line{stroke:var(--text-primary); fill:none; stroke-width:2;}
+  .ref-line{stroke:var(--text-muted); stroke-width:1; stroke-dasharray:0;}
+
+  /* ---------- badges ---------- */
+  .badge{display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap;}
+  .badge.star{background:var(--status-good-wash); color:var(--status-good);}
+  .badge.grow{background:var(--status-warning-wash); color:#8a5a00;}
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]) .badge.grow{color:#fab219;} }
+  :root[data-theme="dark"] .badge.grow{color:#fab219;}
+  .badge.niche{background:var(--surface-2); color:var(--text-secondary);}
+  .badge.cut{background:var(--status-critical-wash); color:var(--status-critical);}
+
+  /* ---------- tables ---------- */
+  .table-wrap{background:var(--surface-1); border:1px solid var(--border); border-radius:12px; overflow:hidden;}
+  .table-controls{display:flex; gap:10px; align-items:center; padding:12px 14px; border-bottom:1px solid var(--border); flex-wrap:wrap;}
+  .table-controls input[type=search]{
+    flex:1; min-width:160px; background:var(--surface-2); border:1px solid var(--border); border-radius:8px;
+    padding:7px 10px; font:inherit; font-size:13px; color:var(--text-primary);
+  }
+  .table-controls select{
+    background:var(--surface-2); border:1px solid var(--border); border-radius:8px;
+    padding:7px 10px; font:inherit; font-size:13px; color:var(--text-primary); cursor:pointer;
+  }
+  .table-controls .count{font-size:12px; color:var(--text-muted); white-space:nowrap;}
+  .scroll-x{overflow-x:auto;}
+  table.data{width:100%; border-collapse:collapse; font-size:12.8px; min-width:760px;}
+  table.data th, table.data td{padding:8px 10px; text-align:right; white-space:nowrap;}
+  table.data th:first-child, table.data td:first-child{text-align:left; white-space:normal; min-width:220px;}
+  #table-discount th:nth-child(2), #table-discount td:nth-child(2),
+  #table-point th:nth-child(2), #table-point td:nth-child(2){text-align:left;}
+  table.data thead th{
+    position:sticky; top:0; background:var(--surface-2); color:var(--text-muted);
+    font-size:11px; text-transform:uppercase; letter-spacing:0.03em; cursor:pointer; user-select:none;
+    border-bottom:1px solid var(--border);
+  }
+  #table-bu thead th{cursor:default;}
+  #table-bu .col-monthgroup{border-left:1px solid var(--border);}
+  table.data thead th:hover{color:var(--text-primary);}
+  table.data thead th.sorted{color:var(--text-primary);}
+  table.data tbody tr{border-bottom:1px solid var(--border);}
+  table.data tbody tr:last-child{border-bottom:0;}
+  table.data tbody tr:hover{background:var(--surface-2);}
+  table.data td{font-variant-numeric: tabular-nums; color:var(--text-secondary);}
+  table.data td.name{color:var(--text-primary); font-weight:600; font-variant-numeric:normal;}
+  table.data td .bu{display:block; font-size:11px; color:var(--text-muted); font-weight:400; margin-top:1px;}
+  table.data tfoot tr.total-row td{
+    font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums;
+    background:var(--surface-2); border-top:2px solid var(--border);
+    position:sticky; bottom:0;
+  }
+  table.data tfoot tr.total-row td.name{font-variant-numeric:normal;}
+  #table-bu-body .delta{display:inline-flex; justify-content:flex-end; width:100%;}
+  .tablescroll{max-height:520px; overflow-y:auto;}
+
+  /* ---------- tooltip ---------- */
+  .viz-tooltip{
+    position:fixed; pointer-events:none; z-index:100; background:var(--text-primary); color:var(--page);
+    font-size:12px; padding:8px 10px; border-radius:8px; max-width:240px; box-shadow:0 6px 18px rgba(0,0,0,0.25);
+    opacity:0; transform:translate(-9999px,-9999px); transition:opacity 0.1s;
+  }
+  .viz-tooltip .t-title{font-weight:700; margin-bottom:3px;}
+  .viz-tooltip .t-row{display:flex; justify-content:space-between; gap:12px;}
+  .viz-tooltip .t-row .v{font-weight:700;}
+
+  footer.foot{margin-top:36px; padding-top:16px; border-top:1px solid var(--border); font-size:12px; color:var(--text-muted);}
+
+  .tabs-inline{display:flex; gap:4px; margin-bottom:12px;}
+  .tabs-inline button{
+    border:1px solid var(--border); background:var(--surface-1); color:var(--text-secondary);
+    font:inherit; font-size:13px; font-weight:600; padding:7px 14px; border-radius:9px 9px 0 0; cursor:pointer;
+    border-bottom:0; position:relative; top:1px;
+  }
+  .tabs-inline button.active{background:var(--surface-1); color:var(--text-primary); border-bottom:1px solid var(--surface-1);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .insight-box{
+    background:var(--surface-2); border-radius:10px; padding:12px 14px; font-size:12.8px; color:var(--text-secondary);
+    display:flex; gap:10px; align-items:flex-start;
+  }
+  .quad-legend{display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--text-secondary); margin-top:10px;}
+  .quad-legend .item{display:flex; align-items:center; gap:6px;}
+  .quad-legend .sw{width:10px; height:10px; border-radius:50%;}
+</style>
+
+<header class="top">
+  <p class="eyebrow">Coupon &amp; Trade Marketing · Jun&ndash;Aug 2026</p>
+  <h1>Coupon Performance Dashboard</h1>
+  <p class="sub">Discount coupons vs. point-back coupons &mdash; GMV impact, cost efficiency (%CIR) and mechanic-level recommendations, sourced from <em>Coupon Raw data</em>.</p>
+  <nav class="tabs">
+    <a href="#overview">Overview</a>
+    <a href="#discount">Discount Coupon</a>
+    <a href="#point">Point Coupon</a>
+    <a href="#trends">Trend Dashboard</a>
+    <a href="#mechanics">Coupon Mechanics</a>
+    <a href="#bu">By Business Unit</a>
+  </nav>
+</header>
+
+<section id="overview">
+  <div class="section-head">
+    <div>
+      <h2>Platform GMV vs. coupon-driven GMV</h2>
+      <p class="desc">How much of total platform GMV runs through a coupon, and how that splits between discount and point-back mechanics.</p>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <span class="label">Period</span>
+    <div class="seg" data-seg="overview">
+      <button data-period="Jun">Jun</button>
+      <button data-period="Jul">Jul</button>
+      <button data-period="Aug">Aug</button>
+      <button data-period="All" class="active">Jun&ndash;Aug</button>
+    </div>
+    <span class="note">KPI tiles follow the period selected; both charts below always show the full Jun&ndash;Aug trend</span>
+  </div>
+
+  <div class="kpi-grid" id="kpi-overview" style="margin-bottom:14px;"></div>
+
+  <div class="grid-2">
+    <figure class="chart-card">
+      <h3>Platform GMV vs. coupon GMV, by month</h3>
+      <p class="cap">฿ millions &middot; platform total vs. discount- and point-coupon-attributed GMV</p>
+      <div id="chart-platform-vs-coupon"></div>
+      <div class="legend">
+        <span class="item"><span class="swatch" style="background:var(--text-muted)"></span>Platform GMV</span>
+        <span class="item discount"><span class="swatch"></span>Discount coupon GMV</span>
+        <span class="item point"><span class="swatch"></span>Point coupon GMV</span>
+      </div>
+    </figure>
+    <figure class="chart-card">
+      <h3>Coupon share of platform GMV</h3>
+      <p class="cap">Coupon-attributed GMV as a % of total platform GMV each month</p>
+      <div id="chart-coupon-share"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section id="discount">
+  <div class="section-head">
+    <div>
+      <span class="type-chip discount"><span class="dot"></span>Discount Coupon</span>
+      <h2 style="margin-top:8px;">Discount coupon performance</h2>
+      <p class="desc">GMV, orders, cost and efficiency for percentage/amount-off coupons.</p>
+    </div>
+  </div>
+  <div class="filter-row">
+    <span class="label">Period</span>
+    <div class="seg" data-seg="discount">
+      <button data-period="Jun">Jun</button>
+      <button data-period="Jul">Jul</button>
+      <button data-period="Aug">Aug</button>
+      <button data-period="All" class="active">Jun&ndash;Aug</button>
+    </div>
+    <span class="note">Jun&ndash;Aug shows the 3-month total; delta is always vs. the prior month</span>
+  </div>
+  <div class="kpi-grid" id="kpi-discount"></div>
+</section>
+
+<section id="point">
+  <div class="section-head">
+    <div>
+      <span class="type-chip point"><span class="dot"></span>Point Coupon</span>
+      <h2 style="margin-top:8px;">Point-back coupon performance</h2>
+      <p class="desc">GMV, orders, point-earn cost and efficiency for point-back coupons.</p>
+    </div>
+  </div>
+  <div class="filter-row">
+    <span class="label">Period</span>
+    <div class="seg" data-seg="point">
+      <button data-period="Jun">Jun</button>
+      <button data-period="Jul">Jul</button>
+      <button data-period="Aug">Aug</button>
+      <button data-period="All" class="active">Jun&ndash;Aug</button>
+    </div>
+    <span class="note">Jun&ndash;Aug shows the 3-month total; delta is always vs. the prior month &middot; Aug unique-customer count pending</span>
+  </div>
+  <div class="kpi-grid" id="kpi-point"></div>
+</section>
+
+<section id="trends">
+  <div class="section-head">
+    <div>
+      <h2>Trend dashboard</h2>
+      <p class="desc">Monthly comparison and cost/%CIR trend &mdash; discount vs. point coupons.</p>
+    </div>
+  </div>
+
+  <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin:0 0 10px;">Overall &middot; all business units</h3>
+
+  <div class="grid-2" style="margin-bottom:14px;">
+    <figure class="chart-card">
+      <h3>Overall monthly coupon GMV</h3>
+      <p class="cap">Discount vs. point coupon GMV by month &middot; Aug vs Jul change annotated</p>
+      <div id="chart-monthly-gmv"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+    <figure class="chart-card">
+      <h3>Cost by coupon type, by month</h3>
+      <p class="cap">Total coupon cost (discount amount / point-earn cost)</p>
+      <div id="chart-monthly-cost"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:28px;">
+    <figure class="chart-card">
+      <h3>%CIR by coupon type, by month</h3>
+      <p class="cap">Cost / GMV &mdash; lower is more efficient</p>
+      <div id="chart-monthly-cir"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+    <figure class="chart-card">
+      <h3>Monthly used unique customers</h3>
+      <p class="cap">Distinct customers redeeming each coupon type, by month</p>
+      <div id="chart-monthly-uniq"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+  </div>
+
+  <h3 style="font-size:13px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-muted); margin:0 0 10px;">By business unit</h3>
+  <div class="filter-row">
+    <span class="label">BU Lv1</span>
+    <select id="filter-bu-trend" aria-label="Select business unit"></select>
+    <span class="note">All charts below follow the BU selected</span>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:14px;">
+    <figure class="chart-card">
+      <h3>Monthly coupon GMV <span id="bu-trend-label-gmv"></span></h3>
+      <p class="cap">Discount vs. point coupon GMV by month, for the selected BU</p>
+      <div id="chart-bu-trend-gmv"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+    <figure class="chart-card">
+      <h3>Cost by coupon type, by month <span id="bu-trend-label-cost"></span></h3>
+      <p class="cap">Total coupon cost (discount amount / point-earn cost), for the selected BU</p>
+      <div id="chart-bu-trend-cost"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="grid-2" style="margin-bottom:14px;">
+    <figure class="chart-card">
+      <h3>%CIR by coupon type, by month <span id="bu-trend-label-cir"></span></h3>
+      <p class="cap">Cost / GMV for the selected BU &mdash; lower is more efficient</p>
+      <div id="chart-bu-trend-cir"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+    <figure class="chart-card">
+      <h3>Monthly used unique customers <span id="bu-trend-label-uniq"></span></h3>
+      <p class="cap">Sum of per-mechanic unique customers for the selected BU &mdash; a customer using two mechanics in the same month counts twice, so this runs slightly above true distinct reach.</p>
+      <div id="chart-bu-trend-uniq"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+  </div>
+
+  <div class="grid-2">
+    <figure class="chart-card">
+      <h3>AOV by coupon type, by month <span id="bu-trend-label-aov"></span></h3>
+      <p class="cap">Average order value (coupon GMV &divide; orders) for the selected BU</p>
+      <div id="chart-bu-trend-aov"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+    <figure class="chart-card">
+      <h3>ACPO by coupon type, by month <span id="bu-trend-label-acpo"></span></h3>
+      <p class="cap">Average cost per order (cost &divide; orders) for the selected BU</p>
+      <div id="chart-bu-trend-acpo"></div>
+      <div class="legend">
+        <span class="item discount"><span class="swatch"></span>Discount coupon</span>
+        <span class="item point"><span class="swatch"></span>Point coupon</span>
+      </div>
+    </figure>
+  </div>
+</section>
+
+<section id="mechanics">
+  <div class="section-head">
+    <div>
+      <h2>Coupon performance by mechanic</h2>
+      <p class="desc">Every coupon mechanic. Filter by month and BU, search, sort, and check the recommendation badge (recomputed against the medians of whatever slice you're viewing).</p>
+    </div>
+  </div>
+  <div class="insight-box" style="margin-bottom:14px;">
+    <div>
+      <strong style="color:var(--text-primary);">Recommendation definitions</strong> (vs. the median GMV and %CIR of the coupons currently shown):
+      <div class="quad-legend" style="margin-top:8px;">
+        <span class="item"><span class="badge star">Scale-up</span>High GMV, Low %CIR vs. median</span>
+        <span class="item"><span class="badge grow">Optimize</span>High GMV, High %CIR vs. median</span>
+        <span class="item"><span class="badge niche">Growth</span>Low GMV, Low %CIR vs. median</span>
+        <span class="item"><span class="badge cut">Reconsider</span>Low GMV, High %CIR vs. median</span>
+      </div>
+    </div>
+  </div>
+  <div class="tabs-inline">
+    <button class="active" data-tab="discount">Discount coupon (<span id="count-discount"></span>)</button>
+    <button data-tab="point">Point coupon (<span id="count-point"></span>)</button>
+  </div>
+  <div class="tab-panel active" id="panel-discount">
+    <div class="table-wrap">
+      <div class="table-controls">
+        <select id="filter-month-discount" aria-label="Filter by month"></select>
+        <select id="filter-bu-discount" aria-label="Filter by BU"></select>
+        <input type="search" id="search-discount" placeholder="Search coupon name or BU&hellip;">
+        <span class="count" id="showing-discount"></span>
+      </div>
+      <div class="scroll-x"><div class="tablescroll">
+        <table class="data" id="table-discount"></table>
+      </div></div>
+    </div>
+  </div>
+  <div class="tab-panel" id="panel-point">
+    <div class="table-wrap">
+      <div class="table-controls">
+        <select id="filter-month-point" aria-label="Filter by month"></select>
+        <select id="filter-bu-point" aria-label="Filter by BU"></select>
+        <input type="search" id="search-point" placeholder="Search coupon name or BU&hellip;">
+        <span class="count" id="showing-point"></span>
+      </div>
+      <div class="scroll-x"><div class="tablescroll">
+        <table class="data" id="table-point"></table>
+      </div></div>
+    </div>
+  </div>
+</section>
+
+<section id="bu">
+  <div class="section-head">
+    <div>
+      <h2>Coupon GMV by business unit</h2>
+      <p class="desc">Which BUs generate the most coupon-driven GMV, and how much of each BU&rsquo;s platform GMV is coupon-attributed.</p>
+    </div>
+  </div>
+  <div class="filter-row">
+    <span class="label">Period</span>
+    <div class="seg" data-seg="bu">
+      <button data-period="Jun">Jun</button>
+      <button data-period="Jul">Jul</button>
+      <button data-period="Aug">Aug</button>
+      <button data-period="All" class="active">Jun&ndash;Aug</button>
+    </div>
+    <span class="note">Chart and table both follow the period selected &middot; MoM compares to the prior calendar month (Jun has none; Jun&ndash;Aug compares Aug vs Jul)</span>
+  </div>
+  <figure class="chart-card" style="margin-bottom:14px;">
+    <h3>Total GMV vs. coupon GMV by BU Lv1</h3>
+    <p class="cap" id="chart-bu-stacked-cap">Stacked bar &mdash; discount + point coupon GMV, plus the non-coupon remainder, stack up to each BU&rsquo;s total platform GMV. Axis fixed at ฿350M so bars stay comparable across periods.</p>
+    <div id="chart-bu-stacked"></div>
+    <div class="legend" id="legend-bu-stacked"></div>
+  </figure>
+  <div class="table-wrap">
+    <div class="scroll-x">
+      <table class="data" id="table-bu" style="min-width:1680px;">
+        <thead>
+          <tr>
+            <th style="text-align:left">BU Lv1</th>
+            <th>Platform GMV</th>
+            <th>MoM</th>
+            <th>Discount GMV</th>
+            <th>MoM</th>
+            <th>Point GMV</th>
+            <th>MoM</th>
+            <th>Discount AOV</th>
+            <th>MoM</th>
+            <th>Point AOV</th>
+            <th>MoM</th>
+            <th>%Discount contribution</th>
+            <th>%Point contribution</th>
+            <th>Discount %CIR</th>
+            <th>MoM (pp)</th>
+            <th>Point %CIR</th>
+            <th>MoM (pp)</th>
+          </tr>
+        </thead>
+        <tbody id="table-bu-body"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<footer class="foot">
+  Source: Coupon Raw data (Google Sheets), Jun&ndash;Aug 2026. Cost = discount amount for discount coupons, point-earn cost (THB) for point coupons. %CIR = Cost / Coupon GMV. Coupon GMV figures for discount and point coupons may overlap where a single order redeemed both, so the two are not strictly additive against platform GMV.
+</footer>
+
+<div class="viz-tooltip" id="tooltip"></div>
+
+<script id="dashboard-data" type="application/json">{"months": ["Jun", "Jul", "Aug"], "platform": {"by_bu": {"Amaze Mall": {"Jun": 61099067.0, "Jul": 77306873.0, "Aug": 129346377.0}, "DG": {"Jun": 2619322.0, "Jul": 3608034.0, "Aug": 4322349.0}, "CPG Mall": {"Jun": 13079019.0, "Jul": 12518457.0, "Aug": 13202268.0}, "ODM": {"Jun": 50829599.0, "Jul": 41407680.0, "Aug": 47116055.0}, "E-service": {"Jun": 3293325.0, "Jul": 3416680.0, "Aug": 2987161.0}}, "total_by_month": {"Jun": 130920332.0, "Jul": 138257724.0, "Aug": 196974210.0}}, "discount": {"totals_by_month": {"Jun": {"gmv": 43100506.0, "order": 11910, "cost": 4108275.0, "used": 11506, "uniq": 9531, "cir": 0.0953, "aov": 3618.85, "acpo": 344.94}, "Jul": {"gmv": 62215153.0, "order": 15639, "cost": 6570118.0, "used": 15230, "uniq": 11308, "cir": 0.1056, "aov": 3978.21, "acpo": 420.11}, "Aug": {"gmv": 114430689.0, "order": 19876, "cost": 12387994.0, "used": 19463, "uniq": 14242, "cir": 0.1083, "aov": 5757.23, "acpo": 623.26}}, "total_all": {"gmv": 219746348.0, "order": 47425, "cost": 23066387.0, "used": 46199, "uniq": 35081, "cir": 0.105, "aov": 4633.56, "acpo": 486.38}, "by_bu": {"Amaze Mall": {"all": {"gmv": 187556835.0, "order": 34179, "cost": 19177815.0, "used": 33049, "uniq": 25099, "cir": 0.1023, "aov": 5487.49, "acpo": 561.1}, "by_month": {"Jun": {"gmv": 33775806.0, "order": 8480, "cost": 3121312.0, "used": 8098, "uniq": 6732, "cir": 0.0924, "aov": 3983.0, "acpo": 368.08}, "Jul": {"gmv": 51739140.0, "order": 11255, "cost": 5173794.0, "used": 10878, "uniq": 8064, "cir": 0.1, "aov": 4596.99, "acpo": 459.69}, "Aug": {"gmv": 102041889.0, "order": 14444, "cost": 10882709.0, "used": 14073, "uniq": 10303, "cir": 0.1066, "aov": 7064.66, "acpo": 753.44}}}, "CPG Mall": {"all": {"gmv": 27846936.0, "order": 8094, "cost": 3530393.0, "used": 8020, "uniq": 5937, "cir": 0.1268, "aov": 3440.44, "acpo": 436.17}, "by_month": {"Jun": {"gmv": 8088814.0, "order": 2148, "cost": 879365.0, "used": 2139, "uniq": 1658, "cir": 0.1087, "aov": 3765.74, "acpo": 409.39}, "Jul": {"gmv": 9174854.0, "order": 2826, "cost": 1302272.0, "used": 2798, "uniq": 2140, "cir": 0.1419, "aov": 3246.59, "acpo": 460.82}, "Aug": {"gmv": 10583268.0, "order": 3120, "cost": 1348756.0, "used": 3083, "uniq": 2139, "cir": 0.1274, "aov": 3392.07, "acpo": 432.29}}}, "DG": {"all": {"gmv": 4342577.0, "order": 5152, "cost": 358179.0, "used": 5130, "uniq": 4045, "cir": 0.0825, "aov": 842.89, "acpo": 69.52}, "by_month": {"Jun": {"gmv": 1235886.0, "order": 1282, "cost": 107598.0, "used": 1269, "uniq": 1141, "cir": 0.0871, "aov": 964.03, "acpo": 83.93}, "Jul": {"gmv": 1301159.0, "order": 1558, "cost": 94052.0, "used": 1554, "uniq": 1104, "cir": 0.0723, "aov": 835.15, "acpo": 60.37}, "Aug": {"gmv": 1805532.0, "order": 2312, "cost": 156529.0, "used": 2307, "uniq": 1800, "cir": 0.0867, "aov": 780.94, "acpo": 67.7}}}}, "raw": [{"month": "Jun", "bu1": "Amaze Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 27500.0, "order": 11, "cost": 5500.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "30% Min 300 Max 300 (Mon Non MG)", "gmv": 7000.0, "order": 7, "cost": 2100.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD 15% Min 100 Max 1,000 (All exc. DG)", "gmv": 200.0, "order": 1, "cost": 30.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "10% Min 1,500 Max 300 (Non MG)", "gmv": 9466.0, "order": 4, "cost": 937.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "10% Min 3,000 Max 300", "gmv": 1187690.0, "order": 126, "cost": 35284.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "10% Min 5,000 Max 500 (MG)", "gmv": 6795086.0, "order": 547, "cost": 273500.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 1258345.0, "order": 170, "cost": 82751.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "10% Min 100 Max 100 (All exc. DG)", "gmv": 104564.0, "order": 381, "cost": 9190.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "10% Min 300 Max 50", "gmv": 135974.0, "order": 274, "cost": 10212.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "10% Min 300 Max 100 (HW)", "gmv": 39509.0, "order": 48, "cost": 3698.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "15% Min 1,000 Max 250 (MB)", "gmv": 311791.0, "order": 259, "cost": 46613.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "15% Min 3,000 Max 700 (MG)", "gmv": 3363528.0, "order": 803, "cost": 481445.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "15% Min 4,000 Max 600 (HW)", "gmv": 776685.0, "order": 176, "cost": 105600.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "15% min 5,000 max 750 (EL)", "gmv": 2587951.0, "order": 316, "cost": 237000.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "15% Min 150 Max 100 (HL)", "gmv": 103483.0, "order": 276, "cost": 15006.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 1003111.0, "order": 869, "cost": 149458.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "20% Min 2,000 Max 400 (MB)", "gmv": 147163.0, "order": 79, "cost": 27068.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "20% Min 200 Max 100 (MB)", "gmv": 184251.0, "order": 399, "cost": 33318.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 770690.0, "order": 419, "cost": 140112.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "25% Min 200 Max 200 (BT)", "gmv": 167232.0, "order": 331, "cost": 39153.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "30% Min 300 Max 300 (Mon Non MG)", "gmv": 81754.0, "order": 91, "cost": 23378.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "CS 40% Min 150 Max 100", "gmv": 338.0, "order": 1, "cost": 100.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Live 20% Min 800 Max 300", "gmv": 84597.0, "order": 67, "cost": 16745.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Live 30% Min 300 Max 200", "gmv": 155408.0, "order": 292, "cost": 45855.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Live 40% Min 150 Max 100", "gmv": 90332.0, "order": 361, "cost": 31746.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Live 40% Min 200 Max 150 (Mardicare)", "gmv": 1032.0, "order": 3, "cost": 396.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Live 50% Min 100 Max 50", "gmv": 43311.0, "order": 358, "cost": 17800.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Live 50% Min 100 Max 50 (Mardicare)", "gmv": 748.0, "order": 6, "cost": 300.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD 15% Min 100 Max 1,000 (All exc. DG)", "gmv": 11617143.0, "order": 1405, "cost": 879127.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD 20% Min 5,000 Max 1,100 (MG)", "gmv": 2690364.0, "order": 365, "cost": 399244.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD 30% Min 300 Max 300 (Non MG)", "gmv": 29560.0, "order": 35, "cost": 8646.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 3,000 Max 300", "gmv": 351.0, "order": 3, "cost": 34.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 395.0, "order": 2, "cost": 40.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 100 Max 100 (All exc. DG)", "gmv": 1580.0, "order": 13, "cost": 158.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 300 Max 50", "gmv": 450.0, "order": 3, "cost": 45.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 1,000 Max 250 (MB)", "gmv": 25382.0, "order": 14, "cost": 3500.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 150 Max 100 (HL)", "gmv": 630.0, "order": 3, "cost": 89.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 3143.0, "order": 13, "cost": 471.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "20% Min 2,000 Max 400 (MB)", "gmv": 30458.0, "order": 14, "cost": 5600.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "20% Min 200 Max 100 (MB)", "gmv": 2350.0, "order": 8, "cost": 463.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 655.0, "order": 4, "cost": 131.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "25% Min 200 Max 200 (BT)", "gmv": 3594.0, "order": 12, "cost": 899.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "JerHigh 10% min 15,000 max 3,000", "gmv": 1849787.0, "order": 62, "cost": 184979.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Live 30% Min 300 Max 200", "gmv": 852.0, "order": 2, "cost": 256.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Live 40% Min 150 Max 100", "gmv": 2144.0, "order": 9, "cost": 818.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Live 50% Min 100 Max 50", "gmv": 2194.0, "order": 18, "cost": 900.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD 15% Min 100 Max 1,000 (All exc. DG)", "gmv": 1309.0, "order": 7, "cost": 196.0}, {"month": "Jun", "bu1": "DG", "name": "3% Min 100 Max 10 (DG)", "gmv": 12454.0, "order": 38, "cost": 253.0}, {"month": "Jun", "bu1": "DG", "name": "5% Min 250 Max 20 (DG)", "gmv": 233006.0, "order": 386, "cost": 6987.0}, {"month": "Jun", "bu1": "DG", "name": "6% Min 350 Max 80 (DG)", "gmv": 162900.0, "order": 191, "cost": 9718.0}, {"month": "Jun", "bu1": "DG", "name": "8% Min 400 Max 100 (DG)", "gmv": 123155.0, "order": 129, "cost": 9257.0}, {"month": "Jun", "bu1": "DG", "name": "10% Min 400 Max 120 (DG)", "gmv": 487218.0, "order": 461, "cost": 39498.0}, {"month": "Jun", "bu1": "DG", "name": "20% Min 1,200 Max 600 (DG)", "gmv": 217153.0, "order": 77, "cost": 41885.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 1,500 Max 300 (Non MG)", "gmv": 108924.0, "order": 24, "cost": 6924.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 3,000 Max 300", "gmv": 117329.0, "order": 26, "cost": 7800.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 6350.0, "order": 4, "cost": 635.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 100 Max 100 (All exc. DG)", "gmv": 7737.0, "order": 26, "cost": 774.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 300 Max 50", "gmv": 14116.0, "order": 17, "cost": 824.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 300 Max 100 (HW)", "gmv": 7468.0, "order": 6, "cost": 527.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 1,000 Max 250 (MB)", "gmv": 300945.0, "order": 229, "cost": 43351.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 4,000 Max 600 (HW)", "gmv": 22496.0, "order": 4, "cost": 2400.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% min 5,000 max 750 (EL)", "gmv": 59267.0, "order": 11, "cost": 8250.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 150 Max 100 (HL)", "gmv": 29656.0, "order": 74, "cost": 4184.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 219365.0, "order": 100, "cost": 27650.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "20% Min 2,000 Max 400 (MB)", "gmv": 903788.0, "order": 404, "cost": 161364.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "20% Min 200 Max 100 (MB)", "gmv": 50032.0, "order": 61, "cost": 5849.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 137277.0, "order": 61, "cost": 25182.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "25% Min 200 Max 200 (BT)", "gmv": 13346.0, "order": 23, "cost": 3156.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "30% Min 300 Max 300 (Mon Non MG)", "gmv": 96878.0, "order": 91, "cost": 27068.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD 15% Min 100 Max 1,000 (All exc. DG)", "gmv": 405141.0, "order": 101, "cost": 60568.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD 30% Min 300 Max 300 (Non MG)", "gmv": 32052.0, "order": 33, "cost": 9311.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 3,000 Max 300", "gmv": 536719.0, "order": 62, "cost": 18600.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 5,000 Max 500 (MG)", "gmv": 826448.0, "order": 112, "cost": 56000.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 32877.0, "order": 7, "cost": 3264.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 100 Max 100 (All exc. DG)", "gmv": 362636.0, "order": 132, "cost": 13092.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "10% Min 300 Max 50", "gmv": 370347.0, "order": 86, "cost": 4284.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 3,000 Max 700 (MG)", "gmv": 389320.0, "order": 66, "cost": 45777.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% min 5,000 max 750 (EL)", "gmv": 612765.0, "order": 107, "cost": 80250.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 150 Max 100 (HL)", "gmv": 2890.0, "order": 5, "cost": 320.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 3973.0, "order": 6, "cost": 596.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "30% Min 300 Max 300 (Mon Non MG)", "gmv": 536.0, "order": 1, "cost": 161.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD 15% Min 100 Max 1,000 (All exc. DG)", "gmv": 487663.0, "order": 81, "cost": 61585.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD 20% Min 5,000 Max 1,100 (MG)", "gmv": 5199.0, "order": 1, "cost": 1040.0}, {"month": "Jul", "bu1": "DG", "name": "2% Min 50 Max 9 (DG)", "gmv": 707.0, "order": 7, "cost": 14.0}, {"month": "Jul", "bu1": "DG", "name": "8% Min 450 Max 80 (DG)", "gmv": 2342.0, "order": 3, "cost": 187.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 4396.0, "order": 20, "cost": 435.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 17651.0, "order": 24, "cost": 2635.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 980056.0, "order": 414, "cost": 196010.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "25% Min 300 Max 150 (Pets)", "gmv": 2785.0, "order": 6, "cost": 615.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "30% Min 500 Max 600 (Mon Non MG)", "gmv": 287500.0, "order": 146, "cost": 86100.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 89424.0, "order": 91, "cost": 26827.0}, {"month": "Jul", "bu1": "DG", "name": "DG Min 22 Max 3 (Dunkin)", "gmv": 606.0, "order": 22, "cost": 66.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 40% Min 150 Max 100", "gmv": 3118.0, "order": 15, "cost": 1204.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 50% Min 100 Max 50", "gmv": 2022.0, "order": 16, "cost": 791.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "MM 30% Min 500 Max 300 (Non MG)", "gmv": 76500.0, "order": 77, "cost": 22950.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD 30% Min 500 Max 300 (Non MG)", "gmv": 109000.0, "order": 110, "cost": 32700.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "10% Min 5,000 Max 1,000 (EL)", "gmv": 8373469.0, "order": 343, "cost": 341763.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 4118054.0, "order": 1232, "cost": 250225.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 31499.0, "order": 96, "cost": 2740.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "10% Min 300 Max 100 (All exc. DG)", "gmv": 71342.0, "order": 234, "cost": 5982.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "15% Min 3,000 Max 1,000 (EL)", "gmv": 2787471.0, "order": 128, "cost": 124580.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "15% Min 5,000 Max 1,000 (EL)", "gmv": 16414619.0, "order": 1633, "cost": 1608688.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "15% Min 5,000 Max 1,500 (iPhone 17)", "gmv": 1798000.0, "order": 62, "cost": 93000.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 3034551.0, "order": 1528, "cost": 442754.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "20% Min 5,000 Max 1,200 (iPhone 17)", "gmv": 57884.0, "order": 2, "cost": 2400.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 1761059.0, "order": 1108, "cost": 345228.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "25% Min 300 Max 150 (Pets)", "gmv": 167990.0, "order": 332, "cost": 38315.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "30% Min 200 Max 450 (JP Non MG)", "gmv": 122328.0, "order": 136, "cost": 36671.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "30% Min 500 Max 600 (Mon Non MG)", "gmv": 303865.0, "order": 169, "cost": 90953.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "DD 20% Min 5,000 Max 1,000 (EL)", "gmv": 1548193.0, "order": 106, "cost": 106000.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 278325.0, "order": 307, "cost": 79529.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 15% Min 3,000 Max 1,000 (Bluestore)", "gmv": 661050.0, "order": 101, "cost": 97560.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 20% Min 800 Max 300", "gmv": 45695.0, "order": 20, "cost": 5288.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 30% Min 300 Max 200", "gmv": 125246.0, "order": 231, "cost": 36639.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 40% Min 150 Max 100", "gmv": 114684.0, "order": 513, "cost": 43896.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 50% Min 100 Max 50", "gmv": 71434.0, "order": 597, "cost": 29785.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 90% Min 200 Max 200 (Lion)", "gmv": 9649.0, "order": 39, "cost": 7704.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Live 90% Min 200 Max 200 (Nivea)", "gmv": 8083.0, "order": 28, "cost": 5506.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "MM 20% Min 5,000 Max 1,000 (EL)", "gmv": 1344220.0, "order": 119, "cost": 119000.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "MM 30% Min 500 Max 300 (Non MG)", "gmv": 195351.0, "order": 211, "cost": 54500.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "New User Voucher", "gmv": 531.0, "order": 1, "cost": 266.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD 15% Min 3,000 Max 1,000 (EL)", "gmv": 6492036.0, "order": 826, "cost": 767147.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD 30% Min 500 Max 300 (Non MG)", "gmv": 225386.0, "order": 233, "cost": 67081.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Specific Sellers, Mobile & Tablet 7%", "gmv": 4674.0, "order": 1, "cost": 327.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 2102.0, "order": 10, "cost": 210.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 587.0, "order": 2, "cost": 56.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 300 Max 100 (All exc. DG)", "gmv": 592.0, "order": 4, "cost": 59.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 1072.0, "order": 5, "cost": 161.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 22.0, "order": 1, "cost": 4.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "JerHigh 9% min 15,000 max 1,350", "gmv": 692305.0, "order": 46, "cost": 62100.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 40% Min 150 Max 100", "gmv": 220.0, "order": 1, "cost": 88.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 50% Min 100 Max 50", "gmv": 383.0, "order": 3, "cost": 150.0}, {"month": "Jul", "bu1": "DG", "name": "2% Min 50 Max 9 (DG)", "gmv": 86669.0, "order": 224, "cost": 915.0}, {"month": "Jul", "bu1": "DG", "name": "3% Min 450 Max 30 (DG)", "gmv": 66442.0, "order": 60, "cost": 1568.0}, {"month": "Jul", "bu1": "DG", "name": "8% Min 450 Max 80 (DG)", "gmv": 1089231.0, "order": 1158, "cost": 80248.0}, {"month": "Jul", "bu1": "DG", "name": "Live 30% Min 300 Max 200", "gmv": 470.0, "order": 1, "cost": 141.0}, {"month": "Jul", "bu1": "DG", "name": "Live 40% Min 150 Max 100", "gmv": 4297.0, "order": 22, "cost": 1703.0}, {"month": "Jul", "bu1": "DG", "name": "Live 50% Min 100 Max 50", "gmv": 1828.0, "order": 18, "cost": 900.0}, {"month": "Jul", "bu1": "DG", "name": "MM 20% Min 1,500 Max 300 (DG)", "gmv": 36283.0, "order": 21, "cost": 6300.0}, {"month": "Jul", "bu1": "DG", "name": "MM 20% Min 450 Max 90 (DG)", "gmv": 10883.0, "order": 21, "cost": 1890.0}, {"month": "Jul", "bu1": "DG", "name": "Targeted 10% Min 1,000 Max 120 (Wogi)", "gmv": 1401.0, "order": 1, "cost": 120.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 5,000 Max 1,000 (EL)", "gmv": 126362.0, "order": 16, "cost": 12587.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 133513.0, "order": 109, "cost": 13275.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 4729.0, "order": 9, "cost": 353.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 300 Max 100 (All exc. DG)", "gmv": 8775.0, "order": 18, "cost": 877.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "15% Min 3,000 Max 1,000 (EL)", "gmv": 74244.0, "order": 13, "cost": 11137.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "15% Min 5,000 Max 1,000 (EL)", "gmv": 104585.0, "order": 17, "cost": 15431.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 544837.0, "order": 277, "cost": 76299.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 394836.0, "order": 236, "cost": 77189.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "25% Min 300 Max 150 (Pets)", "gmv": 62085.0, "order": 102, "cost": 13863.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "30% Min 200 Max 450 (JP Non MG)", "gmv": 75030.0, "order": 77, "cost": 22462.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "30% Min 500 Max 600 (Mon Non MG)", "gmv": 18504.0, "order": 14, "cost": 5510.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "DD 20% Min 5,000 Max 1,000 (EL)", "gmv": 16857.0, "order": 3, "cost": 3000.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 21925.0, "order": 26, "cost": 6309.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 20% Min 800 Max 300", "gmv": 37510.0, "order": 29, "cost": 6975.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 30% Min 300 Max 200", "gmv": 64996.0, "order": 103, "cost": 17510.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 40% Min 150 Max 100", "gmv": 39992.0, "order": 172, "cost": 15061.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 50% Min 100 Max 50", "gmv": 8519.0, "order": 61, "cost": 3050.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 90% Min 200 Max 200 (Lotus's)", "gmv": 9720.0, "order": 34, "cost": 6767.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "MM 30% Min 500 Max 300 (Non MG)", "gmv": 65978.0, "order": 63, "cost": 18471.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD 15% Min 3,000 Max 1,000 (EL)", "gmv": 265213.0, "order": 37, "cost": 36810.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD 30% Min 500 Max 300 (Non MG)", "gmv": 84672.0, "order": 84, "cost": 24442.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 5,000 Max 1,000 (EL)", "gmv": 591762.0, "order": 89, "cost": 56867.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 539736.0, "order": 174, "cost": 47538.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 474.0, "order": 1, "cost": 47.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "10% Min 300 Max 100 (All exc. DG)", "gmv": 535465.0, "order": 202, "cost": 51348.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "15% Min 3,000 Max 1,000 (EL)", "gmv": 80686.0, "order": 14, "cost": 10703.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "15% Min 5,000 Max 1,000 (EL)", "gmv": 3328535.0, "order": 543, "cost": 490421.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 3373.0, "order": 6, "cost": 506.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 678.0, "order": 1, "cost": 136.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "DD 20% Min 5,000 Max 1,000 (EL)", "gmv": 493752.0, "order": 87, "cost": 86214.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 1030.0, "order": 1, "cost": 300.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 20% Min 800 Max 300", "gmv": 25414.0, "order": 7, "cost": 2034.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 30% Min 300 Max 200", "gmv": 4607.0, "order": 8, "cost": 1373.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Live 40% Min 150 Max 100", "gmv": 359.0, "order": 1, "cost": 100.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "MM 20% Min 5,000 Max 1,000 (EL)", "gmv": 85612.0, "order": 14, "cost": 14000.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "MM 30% Min 500 Max 300 (Non MG)", "gmv": 1190.0, "order": 1, "cost": 300.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD 15% Min 3,000 Max 1,000 (EL)", "gmv": 622016.0, "order": 105, "cost": 90179.0}, {"month": "Aug", "bu1": "DG", "name": "2% Min 40 Max 9 (DG)", "gmv": 3136.0, "order": 30, "cost": 63.0}, {"month": "Aug", "bu1": "DG", "name": "2% Min 40 Max 10 (DG)", "gmv": 602.0, "order": 9, "cost": 12.0}, {"month": "Aug", "bu1": "DG", "name": "8% Min 450 Max 80 (DG)", "gmv": 2337.0, "order": 4, "cost": 187.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 7468.0, "order": 19, "cost": 746.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 2383.0, "order": 9, "cost": 238.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "15% Min 5,000 Max 1,000 (EL)", "gmv": 23394.0, "order": 6, "cost": 3509.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 51019.0, "order": 21, "cost": 4502.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 14634.0, "order": 9, "cost": 2927.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "25% Min 300 Max 150 (Pets)", "gmv": 5474.0, "order": 12, "cost": 1332.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "30% Min 500 Max 300 (Mon Non MG)", "gmv": 95025.0, "order": 96, "cost": 27713.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 123017.0, "order": 119, "cost": 35172.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD 35% Min 500 Max 300 (Non MG)", "gmv": 69550.0, "order": 69, "cost": 20321.0}, {"month": "Aug", "bu1": "DG", "name": "DG 10% Min 300 Max 50 (Paul)", "gmv": 449.0, "order": 1, "cost": 45.0}, {"month": "Aug", "bu1": "DG", "name": "DG 13% Min 450 Max 90 (Tao Bin)", "gmv": 7810.0, "order": 11, "cost": 859.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin 8% Min 100 Max 300 (Specific)", "gmv": 479.0, "order": 3, "cost": 38.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin 8% Min 100 Max 400", "gmv": 722.0, "order": 2, "cost": 58.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin 8% Min 100 Max 400 (Specific)", "gmv": 503.0, "order": 3, "cost": 40.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 35 Max 10 (Potato)", "gmv": 10166.0, "order": 162, "cost": 1620.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 45 Max 5 (Tao Bin)", "gmv": 835.0, "order": 18, "cost": 90.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 60 Max 5 (True Coffee)", "gmv": 120.0, "order": 2, "cost": 10.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 75 Max 20 (True Coffee)", "gmv": 135.0, "order": 1, "cost": 20.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 85 Max 16 (True Coffee)", "gmv": 85.0, "order": 1, "cost": 16.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 30% Min 300 Max 200", "gmv": 3380.0, "order": 7, "cost": 1014.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 40% Min 150 Max 100", "gmv": 9077.0, "order": 45, "cost": 3598.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 50% Min 100 Max 50", "gmv": 10404.0, "order": 93, "cost": 4600.0}, {"month": "Aug", "bu1": "DG", "name": "Live 50% Min 100 Max 50 (Potato)", "gmv": 5014.0, "order": 44, "cost": 2200.0}, {"month": "Aug", "bu1": "DG", "name": "Live 50% Min 100 Max 50 (Tao Bin)", "gmv": 4715.0, "order": 34, "cost": 1700.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "MM 30% Min 500 Max 300 (Non MG)", "gmv": 95340.0, "order": 94, "cost": 27522.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "MM 35% Min 500 Max 300 (Non MG)", "gmv": 62790.0, "order": 70, "cost": 20342.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD 15% Min 3,000 Max 1,000 (EL)", "gmv": 21995.0, "order": 5, "cost": 3299.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD 15% Min 5,000 Max 1,000 (EL)", "gmv": 23394.0, "order": 6, "cost": 3509.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD 30% Min 500 Max 300 (Non MG)", "gmv": 83370.0, "order": 86, "cost": 24531.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Targeted 30% Min 500 Max 500", "gmv": 11510.0, "order": 8, "cost": 3453.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Targeted 35% Min 300 Max 150", "gmv": 1582.0, "order": 4, "cost": 554.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Targeted 50% Min 100 Max 50", "gmv": 946.0, "order": 7, "cost": 350.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall BAU Discount 20 Min 100", "gmv": 259.0, "order": 2, "cost": 40.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall BAU Discount 60 Min 300", "gmv": 716.0, "order": 2, "cost": 120.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall PD 15% Min 200 Max 300", "gmv": 200.0, "order": 1, "cost": 30.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall PD 30% Min 300 Max 100", "gmv": 630.0, "order": 2, "cost": 189.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 5,000 Max 5,000 (EL exclu B2B)", "gmv": 1009991.0, "order": 26, "cost": 100980.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 12,000 Max 5,000 (All EL)", "gmv": 3451349.0, "order": 100, "cost": 345085.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 12,000 Max 5,000 (EL)", "gmv": 26223931.0, "order": 720, "cost": 2620539.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 17112732.0, "order": 1239, "cost": 824972.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 4569471.0, "order": 544, "cost": 281644.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 91444.0, "order": 197, "cost": 5829.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "15% Min 3,000 Max 1,000 (EL)", "gmv": 3490.0, "order": 1, "cost": 524.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "15% Min 5,000 Max 1,000 (EL)", "gmv": 22365213.0, "order": 2645, "cost": 2375920.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 1764460.0, "order": 1057, "cost": 258547.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "17% Min 12,000 Max 3,000 (Namkang)", "gmv": 6350988.0, "order": 360, "cost": 1046970.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "20% Min 3,000 Max 1,000", "gmv": 990400.0, "order": 200, "cost": 198080.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 1402500.0, "order": 764, "cost": 260301.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "25% Min 3,000 Max 3,000(Samsung,Philips)", "gmv": 176388.0, "order": 12, "cost": 36000.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "25% Min 300 Max 150 (Pets)", "gmv": 358965.0, "order": 621, "cost": 80332.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "30% Min 200 Max 450 (JP Non MG)", "gmv": 258485.0, "order": 255, "cost": 77545.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "30% Min 500 Max 300 (Mon Non MG)", "gmv": 95134.0, "order": 94, "cost": 27554.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "30% Min 500 Max 600 (Mon Non MG)", "gmv": 2100.0, "order": 1, "cost": 600.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Compensation Discount 2,500 Min 10,000", "gmv": 236684.0, "order": 14, "cost": 35000.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD 20% Min 5,000 Max 1,000 (EL)", "gmv": 1438829.0, "order": 258, "cost": 254167.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 190058.0, "order": 192, "cost": 54226.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD 35% Min 500 Max 300 (Non MG)", "gmv": 68432.0, "order": 75, "cost": 20821.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "EL 15%/3000/1500", "gmv": 5510.0, "order": 1, "cost": 827.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 10% Min 5,000 Max 5,000 (Bluestore)", "gmv": 3328846.0, "order": 97, "cost": 332885.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 10% Min 12,000 Max 5,000(Bluestore)", "gmv": 1483918.0, "order": 44, "cost": 148392.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 15% Min 3,000 Max 1,000 (Bluestore)", "gmv": 282551.0, "order": 51, "cost": 42383.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 20% Min 3,000 Max 1,000 (Oppo)", "gmv": 702160.0, "order": 140, "cost": 136140.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 20% Min 3,000 Max 600 (Bluestore)", "gmv": 170177.0, "order": 49, "cost": 29400.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 20% Min 5,000 Max 3,000 (Bluestore)", "gmv": 101436.0, "order": 6, "cost": 18000.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 20% Min 5,000 Max 5,000 (Bluestore)", "gmv": 33812.0, "order": 2, "cost": 6762.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 20% Min 800 Max 300", "gmv": 73133.0, "order": 57, "cost": 14556.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 30% Min 300 Max 200", "gmv": 257087.0, "order": 435, "cost": 74106.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 40% Min 150 Max 100", "gmv": 120111.0, "order": 539, "cost": 45663.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 50% Min 100 Max 50", "gmv": 106106.0, "order": 892, "cost": 44482.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 80% Min 200 Max 200 (Janjaokha)", "gmv": 7352.0, "order": 30, "cost": 5592.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 88% Min 200 Max 220 (Lion)", "gmv": 9108.0, "order": 36, "cost": 7484.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Live 88% Min 200 Max 220 (Nestle)", "gmv": 7112.0, "order": 28, "cost": 5814.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "MM 20% Min 5,000 Max 1,000 (EL)", "gmv": 985362.0, "order": 110, "cost": 105664.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "MM 30% Min 500 Max 300 (Non MG)", "gmv": 185834.0, "order": 189, "cost": 53894.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "MM 35% Min 500 Max 300 (Non MG)", "gmv": 52244.0, "order": 56, "cost": 15706.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD 15% Min 3,000 Max 1,000 (EL)", "gmv": 2960270.0, "order": 441, "cost": 375703.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD 15% Min 5,000 Max 1,000 (EL)", "gmv": 518654.0, "order": 79, "cost": 70272.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD 30% Min 500 Max 300 (Non MG)", "gmv": 198382.0, "order": 218, "cost": 58865.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Special Live 8.8 Max 3,465 (\u0e3aBluestore)", "gmv": 3473.0, "order": 1, "cost": 3465.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Special Live 8.8 Max 3,482 (Lion)", "gmv": 6980.0, "order": 2, "cost": 6964.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Special Live 8.8 Max 3,482 (Nestle)", "gmv": 6980.0, "order": 2, "cost": 6964.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Targeted 15% Min 15,000 Max 2,400 (TG)", "gmv": 1268973.0, "order": 43, "cost": 103200.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Targeted 30% Min 500 Max 500", "gmv": 81161.0, "order": 83, "cost": 23052.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Targeted 35% Min 300 Max 150", "gmv": 93080.0, "order": 205, "cost": 28165.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Targeted 50% Min 100 Max 50", "gmv": 52157.0, "order": 349, "cost": 16954.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall BAU Discount 20 Min 100", "gmv": 3059.0, "order": 22, "cost": 420.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall BAU Discount 60 Min 300", "gmv": 7751.0, "order": 23, "cost": 1200.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall BAU Discount 200 Min 800", "gmv": 8537.0, "order": 12, "cost": 1318.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall BAU Discount 400 Min 1,500", "gmv": 28756.0, "order": 5, "cost": 1076.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall PD 10% Min 100 Max 400", "gmv": 1024.0, "order": 6, "cost": 102.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall PD 15% Min 200 Max 300", "gmv": 6984.0, "order": 8, "cost": 821.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall PD 20% Min 300 Max 200", "gmv": 3488.0, "order": 8, "cost": 694.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "TMN Mall PD 30% Min 300 Max 100", "gmv": 1720.0, "order": 8, "cost": 477.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 241.0, "order": 2, "cost": 24.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 124.0, "order": 1, "cost": 12.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 1353.0, "order": 6, "cost": 121.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 396.0, "order": 1, "cost": 59.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 87.0, "order": 1, "cost": 17.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "25% Min 300 Max 150 (Pets)", "gmv": 1485.0, "order": 3, "cost": 371.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "JerHigh 9% min 15,000 max 1,350", "gmv": 105928.0, "order": 7, "cost": 9450.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "JerHigh 10% min 15,000 max 1,500", "gmv": 708173.0, "order": 47, "cost": 70500.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "JerHigh 11% min 15,000 max 1,650", "gmv": 1342296.0, "order": 60, "cost": 99000.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 30% Min 300 Max 200", "gmv": 2338.0, "order": 4, "cost": 701.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 40% Min 150 Max 100", "gmv": 4236.0, "order": 19, "cost": 1683.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 50% Min 100 Max 50", "gmv": 1318.0, "order": 10, "cost": 500.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 35% Min 300 Max 150", "gmv": 332.0, "order": 1, "cost": 109.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 50% Min 100 Max 50", "gmv": 156.0, "order": 1, "cost": 50.0}, {"month": "Aug", "bu1": "DG", "name": "2% Min 40 Max 9 (DG)", "gmv": 39679.0, "order": 124, "cost": 592.0}, {"month": "Aug", "bu1": "DG", "name": "2% Min 40 Max 10 (DG)", "gmv": 18558.0, "order": 44, "cost": 270.0}, {"month": "Aug", "bu1": "DG", "name": "2% Min 50 Max 9 (DG)", "gmv": 3090.0, "order": 16, "cost": 52.0}, {"month": "Aug", "bu1": "DG", "name": "8% Min 450 Max 80 (DG)", "gmv": 1215855.0, "order": 1324, "cost": 91296.0}, {"month": "Aug", "bu1": "DG", "name": "Broad 20%/399/350", "gmv": 4094.0, "order": 2, "cost": 628.0}, {"month": "Aug", "bu1": "DG", "name": "CSApologyCode", "gmv": 190.0, "order": 1, "cost": 20.0}, {"month": "Aug", "bu1": "DG", "name": "DD 35% Min 1,500 Max 550 (DG)", "gmv": 27906.0, "order": 15, "cost": 8250.0}, {"month": "Aug", "bu1": "DG", "name": "DD 35% Min 450 Max 160 (DG)", "gmv": 14873.0, "order": 24, "cost": 3831.0}, {"month": "Aug", "bu1": "DG", "name": "DG 10% Min 550 Max 55 (PTG Group)", "gmv": 2741.0, "order": 4, "cost": 220.0}, {"month": "Aug", "bu1": "DG", "name": "DG 12% Min 89 Max 12 (PTG Group)", "gmv": 1491.0, "order": 10, "cost": 119.0}, {"month": "Aug", "bu1": "DG", "name": "DG 80 Min 1000 Disc 80 (TakeCare)", "gmv": 1000.0, "order": 1, "cost": 80.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin 8% Min 100 Max 300 (Specific)", "gmv": 27687.0, "order": 13, "cost": 2215.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin 8% Min 100 Max 330 (Specific)", "gmv": 34602.0, "order": 34, "cost": 2768.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin 8% Min 100 Max 400", "gmv": 169403.0, "order": 109, "cost": 13519.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin 8% Min 100 Max 400 (Specific)", "gmv": 97849.0, "order": 65, "cost": 7828.0}, {"month": "Aug", "bu1": "DG", "name": "DG Contin Min 900 Max 72 (Fastbucks)", "gmv": 2802.0, "order": 3, "cost": 216.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 2,000 Max 150", "gmv": 20893.0, "order": 8, "cost": 1200.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 5,000 Max 400", "gmv": 20847.0, "order": 4, "cost": 1600.0}, {"month": "Aug", "bu1": "DG", "name": "DG Min 55 Max 6 (PTG Group)", "gmv": 1155.0, "order": 21, "cost": 126.0}, {"month": "Aug", "bu1": "DG", "name": "Live 20% Min 1,000 Max 200 (SpeedBucks)", "gmv": 42772.0, "order": 31, "cost": 6200.0}, {"month": "Aug", "bu1": "DG", "name": "Live 30% Min 300 Max 200", "gmv": 396.0, "order": 1, "cost": 119.0}, {"month": "Aug", "bu1": "DG", "name": "Live 40% Min 150 Max 100", "gmv": 7762.0, "order": 41, "cost": 3072.0}, {"month": "Aug", "bu1": "DG", "name": "Live 40% Min 150 Max 100 (Chester's)", "gmv": 5298.0, "order": 27, "cost": 2100.0}, {"month": "Aug", "bu1": "DG", "name": "Live 50% Min 100 Max 50", "gmv": 2435.0, "order": 22, "cost": 1100.0}, {"month": "Aug", "bu1": "DG", "name": "Live 50% Min 100 Max 50 (PTG Group)", "gmv": 5046.0, "order": 43, "cost": 2150.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 97100.0, "order": 82, "cost": 9589.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 49505.0, "order": 42, "cost": 4752.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 26419.0, "order": 44, "cost": 1660.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "15% Min 5,000 Max 1,000 (EL)", "gmv": 290713.0, "order": 43, "cost": 38354.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 604425.0, "order": 384, "cost": 83487.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 389851.0, "order": 255, "cost": 75255.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "25% Min 300 Max 150 (Pets)", "gmv": 145465.0, "order": 248, "cost": 33029.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "30% Min 200 Max 450 (JP Non MG)", "gmv": 47814.0, "order": 47, "cost": 14343.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "30% Min 500 Max 300 (Mon Non MG)", "gmv": 2620.0, "order": 3, "cost": 762.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Broad 20%/399/350", "gmv": 606.0, "order": 1, "cost": 121.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 42149.0, "order": 43, "cost": 11834.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "DD 35% Min 500 Max 300 (Non MG)", "gmv": 24877.0, "order": 28, "cost": 8159.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 20% Min 800 Max 300", "gmv": 80754.0, "order": 75, "cost": 16093.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 30% Min 300 Max 200", "gmv": 107457.0, "order": 166, "cost": 28307.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 40% Min 150 Max 100", "gmv": 67808.0, "order": 272, "cost": 24439.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 50% Min 100 Max 50", "gmv": 17477.0, "order": 107, "cost": 5350.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 80% Min 200 Max 200 (Lotus's)", "gmv": 8473.0, "order": 32, "cost": 6042.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 90% Min 200 Max 200", "gmv": 299.0, "order": 1, "cost": 200.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "MM 30% Min 500 Max 300 (Non MG)", "gmv": 22614.0, "order": 23, "cost": 6348.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "MM 35% Min 500 Max 300 (Non MG)", "gmv": 1736.0, "order": 2, "cost": 600.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD 15% Min 3,000 Max 1,000 (EL)", "gmv": 40922.0, "order": 7, "cost": 5754.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD 30% Min 500 Max 300 (Non MG)", "gmv": 65685.0, "order": 67, "cost": 19164.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 30% Min 500 Max 500", "gmv": 13714.0, "order": 10, "cost": 3281.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 35% Min 300 Max 150", "gmv": 19302.0, "order": 41, "cost": 5263.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 50% Min 100 Max 50", "gmv": 8346.0, "order": 38, "cost": 1867.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "TMN Mall BAU Discount 60 Min 300", "gmv": 835.0, "order": 2, "cost": 120.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "TMN Mall BAU Discount 200 Min 800", "gmv": 2354.0, "order": 3, "cost": 482.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "TMN Mall PD 10% Min 100 Max 400", "gmv": 499.0, "order": 1, "cost": 50.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "TMN Mall PD 15% Min 200 Max 300", "gmv": 1619.0, "order": 2, "cost": 243.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "TMN Mall PD 20% Min 300 Max 200", "gmv": 467.0, "order": 1, "cost": 89.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 5,000 Max 5,000 (Flip Fold 8)", "gmv": 69650.0, "order": 1, "cost": 5000.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 12,000 Max 5,000 (EL)", "gmv": 866237.0, "order": 23, "cost": 86624.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 100 Max 1,000 (All exc. DG)", "gmv": 1918690.0, "order": 270, "cost": 190801.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 100 Max 300 (All exc. DG)", "gmv": 299400.0, "order": 56, "cost": 29760.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "10% Min 200 Max 50 (All exc. DG)", "gmv": 3687.0, "order": 3, "cost": 121.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "15% Min 5,000 Max 1,000 (EL)", "gmv": 2104535.0, "order": 323, "cost": 302872.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "15% Min 300 Max 600 (Non MG)", "gmv": 8775.0, "order": 8, "cost": 1316.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "20% Min 500 Max 500 (Non MG)", "gmv": 3233.0, "order": 3, "cost": 647.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "30% Min 500 Max 300 (Mon Non MG)", "gmv": 995.0, "order": 1, "cost": 299.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "DD 30% Min 500 Max 300 (Non MG)", "gmv": 589.0, "order": 1, "cost": 177.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "DD 35% Min 500 Max 300 (Non MG)", "gmv": 995.0, "order": 1, "cost": 300.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 20% Min 800 Max 300", "gmv": 33005.0, "order": 10, "cost": 3000.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 30% Min 300 Max 200", "gmv": 2458.0, "order": 4, "cost": 688.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live 40% Min 150 Max 100", "gmv": 1586.0, "order": 4, "cost": 372.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "MM 20% Min 5,000 Max 1,000 (EL)", "gmv": 282827.0, "order": 59, "cost": 48205.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD 15% Min 3,000 Max 1,000 (EL)", "gmv": 483229.0, "order": 88, "cost": 68623.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD 15% Min 5,000 Max 1,000 (EL)", "gmv": 139701.0, "order": 21, "cost": 19924.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD 30% Min 500 Max 300 (Non MG)", "gmv": 1745.0, "order": 2, "cost": 523.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Special True SIM \u0e25\u0e14 15% \u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 55.-", "gmv": 446.0, "order": 1, "cost": 55.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Special True SIM \u0e25\u0e14 15% \u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 120.-", "gmv": 691.0, "order": 1, "cost": 104.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Special True SIM \u0e25\u0e14 15% \u0e2a\u0e39\u0e07\u0e2a\u0e38\u0e14 300.-", "gmv": 4720.0, "order": 2, "cost": 600.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 30% Min 500 Max 500", "gmv": 2315.0, "order": 1, "cost": 500.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 35% Min 300 Max 150", "gmv": 729.0, "order": 2, "cost": 255.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Targeted 50% Min 100 Max 50", "gmv": 347.0, "order": 1, "cost": 50.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "TMN Mall BAU Discount 400 Min 1,500", "gmv": 2315.0, "order": 1, "cost": 306.0}], "unique_customers_by_month": {"Jun": 4677, "Jul": 5645, "Aug": 6458}}, "point": {"totals_by_month": {"Jun": {"gmv": 18044277.0, "order": 27849, "cost": 1499568.0, "used": 27687, "uniq": 22842, "cir": 0.0831, "aov": 647.93, "acpo": 53.85}, "Jul": {"gmv": 23348044.0, "order": 28183, "cost": 1857312.0, "used": 28049, "uniq": 22595, "cir": 0.0795, "aov": 828.44, "acpo": 65.9}, "Aug": {"gmv": 21057708.0, "order": 33874, "cost": 1843788.0, "used": 33592, "uniq": 27291, "cir": 0.0876, "aov": 621.65, "acpo": 54.43}}, "total_all": {"gmv": 62450029.0, "order": 89906, "cost": 5200668.0, "used": 89328, "uniq": 72728, "cir": 0.0833, "aov": 694.61, "acpo": 57.85}, "by_bu": {"Amaze Mall": {"all": {"gmv": 21512780.0, "order": 3679, "cost": 2303974.0, "used": 3619, "uniq": 3599, "cir": 0.1071, "aov": 5847.45, "acpo": 626.25}, "by_month": {"Jun": {"gmv": 5280105.0, "order": 1196, "cost": 659025.0, "used": 1168, "uniq": 1163, "cir": 0.1248, "aov": 4414.8, "acpo": 551.02}, "Jul": {"gmv": 11717255.0, "order": 1741, "cost": 1085298.0, "used": 1722, "uniq": 1718, "cir": 0.0926, "aov": 6730.19, "acpo": 623.38}, "Aug": {"gmv": 4515420.0, "order": 742, "cost": 559651.0, "used": 729, "uniq": 718, "cir": 0.1239, "aov": 6085.47, "acpo": 754.25}}}, "CPG Mall": {"all": {"gmv": 865311.0, "order": 234, "cost": 113160.0, "used": 234, "uniq": 231, "cir": 0.1308, "aov": 3697.91, "acpo": 483.59}, "by_month": {"Jun": {"gmv": 168659.0, "order": 50, "cost": 20005.0, "used": 50, "uniq": 50, "cir": 0.1186, "aov": 3373.18, "acpo": 400.1}, "Jul": {"gmv": 169862.0, "order": 66, "cost": 22193.0, "used": 66, "uniq": 66, "cir": 0.1307, "aov": 2573.67, "acpo": 336.26}, "Aug": {"gmv": 526790.0, "order": 118, "cost": 70962.0, "used": 118, "uniq": 115, "cir": 0.1347, "aov": 4464.32, "acpo": 601.37}}}, "DG": {"all": {"gmv": 1942363.0, "order": 1892, "cost": 210642.0, "used": 1860, "uniq": 1273, "cir": 0.1084, "aov": 1026.62, "acpo": 111.33}, "by_month": {"Jun": {"gmv": 0, "order": 0, "cost": 0, "used": 0, "uniq": 0, "cir": 0, "aov": 0, "acpo": 0}, "Jul": {"gmv": 892253.0, "order": 893, "cost": 102659.0, "used": 888, "uniq": 638, "cir": 0.1151, "aov": 999.16, "acpo": 114.96}, "Aug": {"gmv": 1050110.0, "order": 999, "cost": 107983.0, "used": 972, "uniq": 635, "cir": 0.1028, "aov": 1051.16, "acpo": 108.09}}}, "ODM": {"all": {"gmv": 38129575.0, "order": 84101, "cost": 2572892.0, "used": 83615, "uniq": 67625, "cir": 0.0675, "aov": 453.38, "acpo": 30.59}, "by_month": {"Jun": {"gmv": 12595513.0, "order": 26603, "cost": 820538.0, "used": 26469, "uniq": 21629, "cir": 0.0651, "aov": 473.46, "acpo": 30.84}, "Jul": {"gmv": 10568674.0, "order": 25483, "cost": 647162.0, "used": 25373, "uniq": 20173, "cir": 0.0612, "aov": 414.73, "acpo": 25.4}, "Aug": {"gmv": 14965388.0, "order": 32015, "cost": 1105192.0, "used": 31773, "uniq": 25823, "cir": 0.0738, "aov": 467.45, "acpo": 34.52}}}}, "raw": [{"month": "Jun", "bu1": "Amaze Mall", "name": "PD Co-sub x70 min 3,000 max 70,000 pts", "gmv": 94500.0, "order": 27, "cost": 18899.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Cosub Point x30 min 1,500 max 50,000 pts", "gmv": 8123.0, "order": 8, "cost": 598.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Cosub Point x40 min 3,000 max 60,000 pts", "gmv": 13934.0, "order": 2, "cost": 1004.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "GDW Point x40 min 500 max 25,000 pts", "gmv": 20691.0, "order": 27, "cost": 2370.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "GDW Point x50 min 1,500 max 40,000 pts", "gmv": 296947.0, "order": 75, "cost": 25664.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "GDW Point x60 min 3,500 max 65,000 pts", "gmv": 2677802.0, "order": 379, "cost": 246095.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Mass Point x15 min 400 max 8,000 pts", "gmv": 13338.0, "order": 23, "cost": 506.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Mass Point x20 min 2,000 max 20,000 pts", "gmv": 9614.0, "order": 2, "cost": 325.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Mass Point x20 min 400 max 8,000 pts", "gmv": 17695.0, "order": 24, "cost": 992.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "Mass Point x30 min 2,000 max 20,000 pts", "gmv": 177059.0, "order": 10, "cost": 1540.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD Co-sub x50 min 500 max 20,000 pts", "gmv": 8245.0, "order": 10, "cost": 1066.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD Co-sub x60 min 1,500 max 40,000 pts", "gmv": 338278.0, "order": 117, "cost": 46389.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD Co-sub x70 min 3,000 max 70,000 pts", "gmv": 1592962.0, "order": 485, "cost": 312257.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD Mass x30 min 300 max 8,000 pts", "gmv": 778.0, "order": 3, "cost": 66.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD Mass x40 min 800 max 25,000 pts", "gmv": 1740.0, "order": 1, "cost": 204.0}, {"month": "Jun", "bu1": "Amaze Mall", "name": "PD Mass x50 min 2,000 max 35,000 pts", "gmv": 8399.0, "order": 3, "cost": 1050.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Mass Point x15 min 400 max 8,000 pts", "gmv": 2568.0, "order": 2, "cost": 42.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Mass Point x20 min 2,000 max 20,000 pts", "gmv": 6249.0, "order": 1, "cost": 200.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Mass Point x20 min 400 max 8,000 pts", "gmv": 3907.0, "order": 2, "cost": 146.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Mass Point x30 min 2,000 max 20,000 pts", "gmv": 117.0, "order": 1, "cost": 10.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Cosub Point x30 min 1,500 max 50,000 pts", "gmv": 11308.0, "order": 2, "cost": 983.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Cosub Point x40 min 3,000 max 60,000 pts", "gmv": 56770.0, "order": 10, "cost": 6000.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "GDW Point x40 min 500 max 25,000 pts", "gmv": 2757.0, "order": 1, "cost": 250.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "GDW Point x60 min 3,500 max 65,000 pts", "gmv": 41869.0, "order": 11, "cost": 7150.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Mass Point x15 min 400 max 8,000 pts", "gmv": 470.0, "order": 1, "cost": 20.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Mass Point x30 min 2,000 max 20,000 pts", "gmv": 2079.0, "order": 1, "cost": 180.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD Co-sub x60 min 1,500 max 40,000 pts", "gmv": 15956.0, "order": 10, "cost": 2823.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD Co-sub x70 min 3,000 max 70,000 pts", "gmv": 14179.0, "order": 3, "cost": 2100.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "PD Mass x30 min 300 max 8,000 pts", "gmv": 314.0, "order": 1, "cost": 27.0}, {"month": "Jun", "bu1": "ODM", "name": "MK_MM_JUN_x10 min1,500 max1,000 pts", "gmv": 37770.0, "order": 23, "cost": 207.0}, {"month": "Jun", "bu1": "ODM", "name": "MK_MM_JUN_x15 min2,000 max4,500 pts", "gmv": 76416.0, "order": 31, "cost": 952.0}, {"month": "Jun", "bu1": "ODM", "name": "MK_MM_JUN_x20 min4,000 max20,000 pts", "gmv": 67738.0, "order": 10, "cost": 1045.0}, {"month": "Jun", "bu1": "ODM", "name": "MK_SVW_JUN_x15 min2,000 max6,000 pts", "gmv": 146348.0, "order": 58, "cost": 1792.0}, {"month": "Jun", "bu1": "ODM", "name": "MK_SVW_JUN_x20 min5,000 max14,000 pts", "gmv": 22000.0, "order": 4, "cost": 380.0}, {"month": "Jun", "bu1": "ODM", "name": "MK_SVW_JUN_x25 min8,000 max25,000 pts", "gmv": 114303.0, "order": 11, "cost": 2546.0}, {"month": "Jun", "bu1": "ODM", "name": "7D_PD_JUN_x15 min180 max1,300 pts", "gmv": 533115.0, "order": 2412, "cost": 21167.0}, {"month": "Jun", "bu1": "ODM", "name": "7D_PD_JUN_x25 min300 max3,000 pts", "gmv": 346052.0, "order": 1002, "cost": 23855.0}, {"month": "Jun", "bu1": "ODM", "name": "7D_PD_JUN_x35 min400 max6,000 pts", "gmv": 413518.0, "order": 827, "cost": 39278.0}, {"month": "Jun", "bu1": "ODM", "name": "7D_SVW_JUN_x15 min200 max1,200 pts", "gmv": 824302.0, "order": 3436, "cost": 32599.0}, {"month": "Jun", "bu1": "ODM", "name": "7D_SVW_JUN_x20 min300 max2,300 pts", "gmv": 315619.0, "order": 918, "cost": 17164.0}, {"month": "Jun", "bu1": "ODM", "name": "7D_SVW_JUN_x35 min400 max4,500 pts", "gmv": 452878.0, "order": 922, "cost": 39930.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK1_x22 min350 max3,200 pts", "gmv": 405173.0, "order": 969, "cost": 24350.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK1_x33 min700 max9,000 pts", "gmv": 928373.0, "order": 1059, "cost": 86644.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK2_x22 min350 max3,200 pts", "gmv": 704685.0, "order": 1499, "cost": 40493.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK2_x33 min700 max9,000 pts", "gmv": 1199581.0, "order": 1500, "cost": 113032.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK3_x20 min350 max4,000 pts", "gmv": 662379.0, "order": 1499, "cost": 36327.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK3_x25 min700 max7,500 pts", "gmv": 672956.0, "order": 865, "cost": 47504.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK4_x20 min350 max4,000 pts", "gmv": 195785.0, "order": 448, "cost": 10587.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_HW_JUN_WK4_x25 min700 max7,500 pts", "gmv": 84576.0, "order": 109, "cost": 5925.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_PD_JUN_x15 min200 max2,000 pts", "gmv": 639787.0, "order": 2111, "cost": 24919.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_PD_JUN_x25 min500 max5,500 pts", "gmv": 473757.0, "order": 782, "cost": 32695.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_PD_JUN_x30 min800 max10,000 pts", "gmv": 780045.0, "order": 830, "cost": 66208.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_SVW_JUN_x15 min200 max2,000 pts", "gmv": 1103651.0, "order": 3455, "cost": 43531.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_SVW_JUN_x25 min500 max5,000 pts", "gmv": 603065.0, "order": 977, "cost": 40894.0}, {"month": "Jun", "bu1": "ODM", "name": "LT_SVW_JUN_x30 min800 max9,000 pts", "gmv": 791641.0, "order": 846, "cost": 66514.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "GDW Point x40 min 500 max 25,000 pts", "gmv": 2529.0, "order": 1, "cost": 20.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "GDW Point x50 min 1,500 max 40,000 pts", "gmv": 2529.0, "order": 1, "cost": 25.0}, {"month": "Jun", "bu1": "CPG Mall", "name": "Mass Point x30 min 2,000 max 20,000 pts", "gmv": 5058.0, "order": 2, "cost": 29.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x40 min 450 max 9,500 pts", "gmv": 885.0, "order": 1, "cost": 95.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x40 min 450 max 10,000 pts", "gmv": 470.0, "order": 1, "cost": 55.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "GDW Point x70 min 300 max 30,000 pts", "gmv": 30300.0, "order": 21, "cost": 6115.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Mass Point x20 min 400 max 8,000 pts", "gmv": 462.0, "order": 1, "cost": 26.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "MM Point x60 min 500 max 50,000 pts", "gmv": 2500.0, "order": 1, "cost": 443.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Co-sub x50 min 500 max 20,000 pts", "gmv": 285.0, "order": 1, "cost": 37.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Co-sub x60 min 1,500 max 60,000 pts", "gmv": 18000.0, "order": 6, "cost": 3186.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Co-sub x70 min 5,000 max 105,000 pts", "gmv": 155000.0, "order": 31, "cost": 32085.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Cosub Point x20 min 400 max 8,000 pts", "gmv": 1248.0, "order": 2, "cost": 71.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Cosub Point x30 min 2,000 max 30,000 pts", "gmv": 8881.0, "order": 4, "cost": 720.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "GDW Point x50 min 3,500 max 70,000 pts", "gmv": 4802066.0, "order": 217, "cost": 148496.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "GDW Point x60 min 1,500 max 50,000 pts", "gmv": 1167366.0, "order": 350, "cost": 172213.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "GDW Point x70 min 300 max 30,000 pts", "gmv": 47552.0, "order": 58, "cost": 9464.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Mass Point x20 min 400 max 8,000 pts", "gmv": 38763.0, "order": 27, "cost": 909.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Mass Point x30 min 1,500 max 30,000 pts", "gmv": 174969.0, "order": 12, "cost": 2910.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "Mass Point x30 min 2,000 max 30,000 pts", "gmv": 464371.0, "order": 90, "cost": 26677.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "MM Point x50 min 3,000 max 80,000 pts", "gmv": 792405.0, "order": 50, "cost": 38395.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "MM Point x60 min 500 max 50,000 pts", "gmv": 183915.0, "order": 43, "cost": 20046.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Co-sub x50 min 500 max 20,000 pts", "gmv": 19760.0, "order": 27, "cost": 2593.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Co-sub x60 min 1,500 max 60,000 pts", "gmv": 1613831.0, "order": 423, "cost": 247286.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Co-sub x70 min 5,000 max 105,000 pts", "gmv": 2082501.0, "order": 348, "cost": 364825.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Mass x30 min 300 max 8,000 pts", "gmv": 3846.0, "order": 6, "cost": 237.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Mass x40 min 800 max 25,000 pts", "gmv": 5914.0, "order": 4, "cost": 679.0}, {"month": "Jul", "bu1": "Amaze Mall", "name": "PD Mass x50 min 2,000 max 35,000 pts", "gmv": 133620.0, "order": 40, "cost": 14000.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Mass Point x20 min 400 max 8,000 pts", "gmv": 7556.0, "order": 4, "cost": 143.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Mass Point x30 min 1,500 max 30,000 pts", "gmv": 1868.0, "order": 1, "cost": 162.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Mass Point x30 min 2,000 max 30,000 pts", "gmv": 19823.0, "order": 3, "cost": 787.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x20 min 450 max 4,500 pts", "gmv": 22896.0, "order": 21, "cost": 855.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x35 min 450 max 9,500 pts", "gmv": 60632.0, "order": 66, "cost": 5589.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x40 min 450 max 9,500 pts", "gmv": 58983.0, "order": 67, "cost": 6039.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x40 min 450 max 10,000 pts", "gmv": 268499.0, "order": 296, "cost": 28645.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x40 min 750 max 18,000 pts", "gmv": 46832.0, "order": 37, "cost": 4762.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x40 min 900 max 18,000 pts", "gmv": 82910.0, "order": 55, "cost": 7879.0}, {"month": "Jul", "bu1": "DG", "name": "DG Point x50 min 900 max 18,000 pts", "gmv": 350146.0, "order": 349, "cost": 48740.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Cosub Point x30 min 2,000 max 30,000 pts", "gmv": 5690.0, "order": 1, "cost": 300.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "GDW Point x50 min 3,500 max 70,000 pts", "gmv": 11158.0, "order": 2, "cost": 1400.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "GDW Point x60 min 1,500 max 50,000 pts", "gmv": 2870.0, "order": 1, "cost": 500.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "GDW Point x70 min 300 max 30,000 pts", "gmv": 1499.0, "order": 3, "cost": 306.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Mass Point x20 min 400 max 8,000 pts", "gmv": 2149.0, "order": 3, "cost": 119.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Mass Point x30 min 1,500 max 30,000 pts", "gmv": 582.0, "order": 1, "cost": 50.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "MM Point x60 min 500 max 50,000 pts", "gmv": 3600.0, "order": 2, "cost": 637.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD Co-sub x50 min 500 max 20,000 pts", "gmv": 5546.0, "order": 7, "cost": 791.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD Co-sub x60 min 1,500 max 60,000 pts", "gmv": 739.0, "order": 1, "cost": 129.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD Co-sub x70 min 5,000 max 105,000 pts", "gmv": 70595.0, "order": 10, "cost": 10500.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD Mass x30 min 300 max 8,000 pts", "gmv": 1238.0, "order": 2, "cost": 95.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD Mass x40 min 800 max 25,000 pts", "gmv": 1179.0, "order": 1, "cost": 137.0}, {"month": "Jul", "bu1": "ODM", "name": "MK_MM_JUL_x20 min2,000 max8,000 pts", "gmv": 122033.0, "order": 46, "cost": 2037.0}, {"month": "Jul", "bu1": "ODM", "name": "MK_MM_JUL_x25 min5,000 max20,000 pts", "gmv": 81826.0, "order": 11, "cost": 1800.0}, {"month": "Jul", "bu1": "ODM", "name": "MK_PD_JUL_x20 min2,000 max8,000 pts", "gmv": 179209.0, "order": 68, "cost": 3002.0}, {"month": "Jul", "bu1": "ODM", "name": "MK_PD_JUL_x25 min5,000 max20,000 pts", "gmv": 123218.0, "order": 15, "cost": 2448.0}, {"month": "Jul", "bu1": "ODM", "name": "7D_PD_JUN_x15 min180 max1,300 pts", "gmv": 907063.0, "order": 4075, "cost": 36053.0}, {"month": "Jul", "bu1": "ODM", "name": "7D_PD_JUN_x25 min300 max3,000 pts", "gmv": 373776.0, "order": 1080, "cost": 25632.0}, {"month": "Jul", "bu1": "ODM", "name": "7D_PD_JUN_x35 min400 max6,000 pts", "gmv": 517397.0, "order": 1027, "cost": 48973.0}, {"month": "Jul", "bu1": "ODM", "name": "7D_SVW_JUL_x15 min180 max1,200 pts", "gmv": 776703.0, "order": 3495, "cost": 30841.0}, {"month": "Jul", "bu1": "ODM", "name": "7D_SVW_JUL_x20 min300 max2,300 pts", "gmv": 244406.0, "order": 703, "cost": 13346.0}, {"month": "Jul", "bu1": "ODM", "name": "7D_SVW_JUL_x35 min400 max6,000 pts", "gmv": 528540.0, "order": 1063, "cost": 50184.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK1_x22 min350 max4,000 pts", "gmv": 431102.0, "order": 1076, "cost": 26419.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK1_x30 min700 max7,500 pts", "gmv": 354126.0, "order": 442, "cost": 30094.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK2_x22 min350 max4,000 pts", "gmv": 617608.0, "order": 1500, "cost": 37808.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK2_x30 min700 max7,500 pts", "gmv": 406257.0, "order": 483, "cost": 32922.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK3_x22 min350 max4,000 pts", "gmv": 354564.0, "order": 754, "cost": 21174.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK3_x30 min700 max7,500 pts", "gmv": 198382.0, "order": 229, "cost": 15700.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK4_x22 min350 max4,000 pts", "gmv": 204679.0, "order": 457, "cost": 12276.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK4_x30 min700 max7,500 pts", "gmv": 146755.0, "order": 176, "cost": 12104.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_HW_JUL_WK5_x22 min350 max4,000 pts", "gmv": 58935.0, "order": 125, "cost": 3409.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_MM_JUL_x22 min350 max4,000 pts", "gmv": 198832.0, "order": 418, "cost": 11888.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_MM_JUL_x33 min700 max10,000 pts", "gmv": 146032.0, "order": 163, "cost": 13149.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_PD_JUL_x15 min200 max2,000 pts", "gmv": 764820.0, "order": 2610, "cost": 29871.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_PD_JUL_x27 min500 max5,500 pts", "gmv": 386938.0, "order": 624, "cost": 28501.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_PD_JUL_x33 min800 max10,000 pts", "gmv": 344479.0, "order": 354, "cost": 30810.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_SVW_JUL_x15 min200 max2,000 pts", "gmv": 904162.0, "order": 2933, "cost": 35740.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_SVW_JUL_x25 min500 max5,000 pts", "gmv": 534378.0, "order": 863, "cost": 36359.0}, {"month": "Jul", "bu1": "ODM", "name": "LT_SVW_JUL_x30 min800 max9,000 pts", "gmv": 662454.0, "order": 693, "cost": 54622.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "Mass Point x30 min 1,500 max 30,000 pts", "gmv": 2529.0, "order": 1, "cost": 15.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD Co-sub x50 min 500 max 20,000 pts", "gmv": 585.0, "order": 1, "cost": 5.0}, {"month": "Jul", "bu1": "CPG Mall", "name": "PD Mass x30 min 300 max 8,000 pts", "gmv": 356.0, "order": 1, "cost": 2.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Cosub Point 5% min 400 max 8,000 pts", "gmv": 2596.0, "order": 3, "cost": 90.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Cosub Point 9% min 1,500 max 30,000 pts", "gmv": 2376.0, "order": 1, "cost": 214.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD Co-sub 25% min 5,000 max 188,800 pts", "gmv": 56700.0, "order": 8, "cost": 14175.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DG Point 10% min 450 max 10,000 pts", "gmv": 1370.0, "order": 2, "cost": 137.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DG Point 12% min 1,000 max 12,000 pts", "gmv": 115.0, "order": 1, "cost": 13.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DG Point 12% min 900 max 18,000 pts", "gmv": 1800.0, "order": 2, "cost": 216.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD Co-sub 12% min 300 max 40,000 pts", "gmv": 1104.0, "order": 3, "cost": 124.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Cosub Point 5% min 400 max 8,000 pts", "gmv": 6005.0, "order": 12, "cost": 272.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "Cosub Point 9% min 1,500 max 30,000 pts", "gmv": 349213.0, "order": 101, "cost": 28050.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD Co-sub 15% min 300 max 50,000 pts", "gmv": 10798.0, "order": 10, "cost": 1530.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD Co-sub 20% min 3,500 max 100,000 pts", "gmv": 2635412.0, "order": 302, "cost": 281579.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD Co-sub 25% min 5,000 max 188,800 pts", "gmv": 296131.0, "order": 25, "cost": 39878.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD Mass 10% min 800 max 20,000 pts", "gmv": 7248.0, "order": 2, "cost": 395.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "DD Mass 12% min 2,000 max 35,000 pts", "gmv": 2190.0, "order": 1, "cost": 258.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "MM Co-sub 15% min 300 max 50,000 pts", "gmv": 19882.0, "order": 15, "cost": 2801.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "MM Co-sub 20% min 3,500 max 80,000 pts", "gmv": 516856.0, "order": 129, "cost": 99259.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD Co-sub 12% min 300 max 40,000 pts", "gmv": 3960.0, "order": 11, "cost": 458.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD Co-sub 15% min 3,500 max 60,000 pts", "gmv": 271741.0, "order": 51, "cost": 30480.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD Co-sub 20% min 5,000 max 100,000 pts", "gmv": 319930.0, "order": 59, "cost": 58743.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD Mass 10% min 800 max 20,000 pts", "gmv": 958.0, "order": 1, "cost": 96.0}, {"month": "Aug", "bu1": "Amaze Mall", "name": "PD Mass 12% min 2,000 max 35,000 pts", "gmv": 9035.0, "order": 3, "cost": 883.0}, {"month": "Aug", "bu1": "DG", "name": "DG Point 9% min 450 max 8,500 pts", "gmv": 84047.0, "order": 99, "cost": 7446.0}, {"month": "Aug", "bu1": "DG", "name": "DG Point 10% min 450 max 10,000 pts", "gmv": 225712.0, "order": 240, "cost": 21202.0}, {"month": "Aug", "bu1": "DG", "name": "DG Point 10% min 900 max 16,000 pts", "gmv": 183255.0, "order": 165, "cost": 17740.0}, {"month": "Aug", "bu1": "DG", "name": "DG Point 12% min 1,000 max 12,000 pts", "gmv": 119350.0, "order": 121, "cost": 13067.0}, {"month": "Aug", "bu1": "DG", "name": "DG Point 12% min 900 max 18,000 pts", "gmv": 437746.0, "order": 374, "cost": 48528.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Cosub Point 5% min 400 max 8,000 pts", "gmv": 5628.0, "order": 5, "cost": 245.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Cosub Point 9% min 1,500 max 30,000 pts", "gmv": 1640.0, "order": 1, "cost": 144.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "DD Co-sub 15% min 300 max 50,000 pts", "gmv": 2036.0, "order": 2, "cost": 290.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "MM Co-sub 15% min 300 max 50,000 pts", "gmv": 1619.0, "order": 1, "cost": 243.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "MM Co-sub 20% min 3,500 max 80,000 pts", "gmv": 4489.0, "order": 2, "cost": 850.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD Co-sub 12% min 300 max 40,000 pts", "gmv": 4370.0, "order": 5, "cost": 517.0}, {"month": "Aug", "bu1": "ODM", "name": "MK_88_AUG_8% min 2000 max20,000 pts", "gmv": 587888.0, "order": 198, "cost": 39275.0}, {"month": "Aug", "bu1": "ODM", "name": "MK_MM_AUG_8% min 2000 max20,000 pts", "gmv": 112125.0, "order": 35, "cost": 6744.0}, {"month": "Aug", "bu1": "ODM", "name": "MK_PD_AUG_ min3,000 max20,000 pts", "gmv": 314460.0, "order": 86, "cost": 17240.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_88_AUG_5% min180 max2,000 pts", "gmv": 316122.0, "order": 1427, "cost": 15026.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_88_AUG_8% min300  max6,000 pts", "gmv": 113144.0, "order": 327, "cost": 8101.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_88_AUG_11% min400 max6,000 pts", "gmv": 98369.0, "order": 203, "cost": 10131.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_PD_AUG_5% min180 max1,500 pts", "gmv": 205590.0, "order": 921, "cost": 9781.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_PD_AUG_8% min300 max3,000 pts", "gmv": 257527.0, "order": 729, "cost": 19488.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_PD_AUG_11% min400 max6,000 pts", "gmv": 372478.0, "order": 765, "cost": 38217.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_SVW_AUG_5% min180 max1,200 pts", "gmv": 814513.0, "order": 3556, "cost": 36924.0}, {"month": "Aug", "bu1": "ODM", "name": "7D_SVW_AUG_6% min300 max2,300 pts", "gmv": 713563.0, "order": 1705, "cost": 56656.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_19AUG_5% min200 max2,000 pts", "gmv": 479624.0, "order": 1495, "cost": 24874.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_19AUG_8% min500 max6,000 pts", "gmv": 628441.0, "order": 997, "cost": 55682.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_88_AUG_5% min200 max2,000 pts", "gmv": 247244.0, "order": 857, "cost": 11389.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_88_AUG_8% min500 max6,000 pts", "gmv": 126142.0, "order": 207, "cost": 9538.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_88_AUG_10% min800 max10,000 pts", "gmv": 228766.0, "order": 246, "cost": 21708.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK1_7% min300 max3,500 pts", "gmv": 328448.0, "order": 864, "cost": 21896.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK1_9% min600 max8,000 pts", "gmv": 212530.0, "order": 294, "cost": 18427.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK2_7% min300 max3,500 pts", "gmv": 373244.0, "order": 1013, "cost": 25733.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK2_9% min600 max8,000 pts", "gmv": 294211.0, "order": 390, "cost": 28295.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK3_7% min300 max3,500 pts", "gmv": 840817.0, "order": 2100, "cost": 55465.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK3_9% min600 max8,000 pts", "gmv": 573068.0, "order": 799, "cost": 51642.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK4_7% min300 max3,500 pts", "gmv": 287407.0, "order": 726, "cost": 18982.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_AUG_WK4_9% min600 max8,000 pts", "gmv": 366856.0, "order": 480, "cost": 31941.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_JUL_WK4_x30 min700 max7,500 pts", "gmv": 162834.0, "order": 175, "cost": 12235.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_HW_JUL_WK5_x22 min350 max4,000 pts", "gmv": 128089.0, "order": 297, "cost": 7634.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_MM_AUG_6% min250 max2500 pts", "gmv": 63369.0, "order": 215, "cost": 3831.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_MM_AUG_8% min450 max5000 pts", "gmv": 99849.0, "order": 186, "cost": 8052.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_MM_AUG_11% min700 max10000 pts", "gmv": 628501.0, "order": 800, "cost": 75284.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_PD_AUG_5% min200 max2,000 pts", "gmv": 897631.0, "order": 2857, "cost": 41397.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_PD_AUG_8% min500 max6,000 pts", "gmv": 826190.0, "order": 1348, "cost": 64160.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_PD_AUG_10% min800 max10,000 pts", "gmv": 1664803.0, "order": 1928, "cost": 163464.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_SVW_AUG_1,000 pts min200", "gmv": 724940.0, "order": 2462, "cost": 24620.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_SVW_AUG_4,000 pts min500", "gmv": 238859.0, "order": 413, "cost": 16520.0}, {"month": "Aug", "bu1": "ODM", "name": "LT_SVW_AUG_6,000 pts min600", "gmv": 637746.0, "order": 914, "cost": 54840.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Cosub Point 5% min 400 max 8,000 pts", "gmv": 8937.0, "order": 3, "cost": 240.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Cosub Point 9% min 1,500 max 30,000 pts", "gmv": 135334.0, "order": 46, "cost": 12165.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "DD Co-sub 15% min 300 max 50,000 pts", "gmv": 10086.0, "order": 4, "cost": 1137.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "DD Co-sub 25% min 5,000 max 188,800 pts", "gmv": 118764.0, "order": 18, "cost": 29691.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "Live Point 15% Min 3,500 Max 100,000 pts", "gmv": 213326.0, "order": 25, "cost": 22783.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD Co-sub 12% min 300 max 40,000 pts", "gmv": 12836.0, "order": 4, "cost": 1540.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD Co-sub 20% min 5,000 max 100,000 pts", "gmv": 6558.0, "order": 1, "cost": 1000.0}, {"month": "Aug", "bu1": "CPG Mall", "name": "PD Mass 10% min 800 max 20,000 pts", "gmv": 1167.0, "order": 1, "cost": 117.0}], "unique_customers_by_month": {"Jun": 14325, "Jul": 12990, "Aug": 14919}}}</script>
+<script>
+(function(){
+"use strict";
+var DATA = JSON.parse(document.getElementById('dashboard-data').textContent);
+var MONTHS = DATA.months;
+
+/* ---------------- utils ---------------- */
+function esc(s){
+  return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function fmtMoney(v){
+  if(v==null) return 'n/a';
+  var sign = v<0?'-':''; v=Math.abs(v);
+  if(v>=1e9) return sign+'฿'+(v/1e9).toFixed(2)+'B';
+  if(v>=1e6) return sign+'฿'+(v/1e6).toFixed(1)+'M';
+  if(v>=1e3) return sign+'฿'+(v/1e3).toFixed(1)+'K';
+  return sign+'฿'+Math.round(v).toLocaleString();
+}
+function fmtMoneyFull(v){ return v==null?'n/a':'฿'+Math.round(v).toLocaleString(); }
+function fmtNum(v){
+  if(v==null) return 'n/a';
+  if(v>=1e6) return (v/1e6).toFixed(1)+'M';
+  if(v>=1e3) return (v/1e3).toFixed(1)+'K';
+  return Math.round(v).toLocaleString();
+}
+function fmtPct(v,d){ if(v==null) return 'n/a'; d=d==null?1:d; return (v*100).toFixed(d)+'%'; }
+function niceMax(v){
+  if(v<=0) return 1;
+  var mag = Math.pow(10, Math.floor(Math.log10(v)));
+  var norm = v/mag, n;
+  if(norm<=1) n=1; else if(norm<=2) n=2; else if(norm<=2.5) n=2.5; else if(norm<=5) n=5; else n=10;
+  return n*mag;
+}
+function makeTicks(max,count){ count=count||4; var arr=[]; for(var i=0;i<=count;i++) arr.push(max*i/count); return arr; }
+function momDelta(curr, prev){ if(prev==null || prev===0 || curr==null) return null; return (curr-prev)/prev; }
+function roundedBarPath(x,y,w,h,r){
+  if(h<=0.4) return '';
+  r = Math.min(r, w/2, h);
+  return 'M'+x+','+(y+h)+' L'+x+','+(y+r)+' Q'+x+','+y+' '+(x+r)+','+y+' L'+(x+w-r)+','+y+' Q'+(x+w)+','+y+' '+(x+w)+','+(y+r)+' L'+(x+w)+','+(y+h)+' Z';
+}
+function tipAttr(title, rows){
+  return 'data-tip="'+esc(JSON.stringify({title:title, rows:rows}))+'"';
+}
+function median(sortedArr){
+  if(!sortedArr.length) return 0;
+  var mid=Math.floor(sortedArr.length/2);
+  return sortedArr.length%2? sortedArr[mid] : (sortedArr[mid-1]+sortedArr[mid])/2;
+}
+
+/* CSS-var lookup for building legends dynamically (keeps swatch colors in sync with theme) */
+var SERIES_VAR = {
+  'mark-discount':'--series-1', 'mark-point':'--series-2', 'mark-muted':'--text-muted',
+  'mark-series-3':'--series-3', 'mark-series-4':'--series-4', 'mark-series-5':'--series-5', 'mark-series-6':'--series-6'
+};
+function legendSwatch(varName, opacity){
+  return '<span class="swatch" style="background:var('+varName+')'+(opacity!=null?';opacity:'+opacity:'')+'"></span>';
+}
+function buildLegend(items){
+  // items: [{cls, label, opacity}]
+  return items.map(function(it){
+    return '<span class="item">'+legendSwatch(SERIES_VAR[it.cls]||'--text-muted', it.opacity)+esc(it.label)+'</span>';
+  }).join('');
+}
+
+/* ---------------- tooltip (delegated) ---------------- */
+(function(){
+  var tip = document.getElementById('tooltip');
+  function hide(){ tip.style.opacity=0; tip.style.transform='translate(-9999px,-9999px)'; }
+  document.addEventListener('pointermove', function(e){
+    var el = e.target.closest ? e.target.closest('[data-tip]') : null;
+    if(!el){ hide(); return; }
+    var data;
+    try{ data = JSON.parse(el.getAttribute('data-tip')); }catch(err){ hide(); return; }
+    tip.innerHTML='';
+    var t=document.createElement('div'); t.className='t-title'; t.textContent=data.title; tip.appendChild(t);
+    (data.rows||[]).forEach(function(r){
+      var row=document.createElement('div'); row.className='t-row';
+      var l=document.createElement('span'); l.textContent=r[0];
+      var v=document.createElement('span'); v.className='v'; v.textContent=r[1];
+      row.appendChild(l); row.appendChild(v); tip.appendChild(row);
+    });
+    var pad=14, x=e.clientX+pad, y=e.clientY+pad;
+    tip.style.opacity=1;
+    tip.style.transform='translate('+x+'px,'+y+'px)';
+    requestAnimationFrame(function(){
+      var r=tip.getBoundingClientRect(), xx=x, yy=y;
+      if(r.right>window.innerWidth-8) xx = e.clientX-r.width-pad;
+      if(r.bottom>window.innerHeight-8) yy = e.clientY-r.height-pad;
+      tip.style.transform='translate('+xx+'px,'+yy+'px)';
+    });
+  });
+  document.addEventListener('pointerdown', function(){ hide(); });
+  window.addEventListener('blur', hide);
+})();
+
+/* ---------------- grouped / simple bar chart ---------------- */
+function svgGroupedBar(opts){
+  var W=600, H=opts.height||250;
+  var marginL=56, marginR=14, marginT=16, marginB=32;
+  var plotW=W-marginL-marginR, plotH=H-marginT-marginB;
+  var allVals = [];
+  opts.series.forEach(function(s){ s.values.forEach(function(v){ if(v!=null) allVals.push(v); }); });
+  var maxVal = Math.max.apply(null,[0].concat(allVals));
+  var axisMax = niceMax(maxVal*1.2 || 1);
+  var ticks = makeTicks(axisMax,4);
+  function y(v){ return marginT+plotH-(v/axisMax)*plotH; }
+  var catW = plotW/opts.categories.length;
+  var nSeries = opts.series.length;
+  var groupPad = catW*0.12;
+  var barGap = nSeries>1?4:0;
+  var barW = (catW-groupPad*2-barGap*(nSeries-1))/nSeries;
+  barW = Math.min(barW, 46);
+  var groupW = barW*nSeries+barGap*(nSeries-1);
+
+  var grid='', axisLbl='';
+  ticks.forEach(function(t){
+    var yy=y(t);
+    grid += '<line x1="'+marginL+'" x2="'+(W-marginR)+'" y1="'+yy+'" y2="'+yy+'" class="grid-line"/>';
+    axisLbl += '<text x="'+(marginL-8)+'" y="'+(yy+3)+'" text-anchor="end" class="chart-text">'+esc(opts.fmt(t))+'</text>';
+  });
+  grid += '<line x1="'+marginL+'" x2="'+(W-marginR)+'" y1="'+y(0)+'" y2="'+y(0)+'" class="axis-line"/>';
+
+  var bars='', catLbl='';
+  opts.categories.forEach(function(cat,ci){
+    var cx = marginL+ci*catW+catW/2;
+    catLbl += '<text x="'+cx+'" y="'+(H-marginB+18)+'" text-anchor="middle" class="chart-text">'+esc(cat)+'</text>';
+    var startX = cx - groupW/2;
+    opts.series.forEach(function(s,si){
+      var val = s.values[ci];
+      var bx = startX+si*(barW+barGap);
+      if(val==null){
+        bars += '<text x="'+(bx+barW/2)+'" y="'+(y(0)-6)+'" text-anchor="middle" class="chart-text">pending</text>';
+        return;
+      }
+      var by = y(val), bh = y(0)-by;
+      var path = roundedBarPath(bx,by,barW,bh,4);
+      var rows=[[s.label, opts.fmtFull? opts.fmtFull(val): opts.fmt(val)]];
+      var op = s.opacity!=null? ' fill-opacity="'+s.opacity+'"' : '';
+      bars += '<path d="'+path+'" class="'+s.cls+' bar-hit"'+op+' '+tipAttr(cat+' – '+s.label, rows)+'></path>';
+      if(opts.valueLabels!==false && bh>13){
+        bars += '<text x="'+(bx+barW/2)+'" y="'+(by-6)+'" text-anchor="middle" class="chart-text-strong">'+esc(opts.fmtShort?opts.fmtShort(val):opts.fmt(val))+'</text>';
+      }
+    });
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img">'+grid+bars+axisLbl+catLbl+'</svg>';
+}
+
+/* ---------------- stacked bar chart (segments sum to a meaningful total,
+   e.g. coupon GMV + non-coupon GMV = platform GMV) ---------------- */
+function svgStackedBar(opts){
+  var W=600, H=opts.height||280;
+  var marginL=64, marginR=14, marginT=22, marginB=32;
+  var plotW=W-marginL-marginR, plotH=H-marginT-marginB;
+  var totals = opts.categories.map(function(cat,ci){
+    return opts.segments.reduce(function(s,seg){ return s+(seg.values[ci]||0); },0);
+  });
+  var maxVal = Math.max.apply(null,[0].concat(totals));
+  var axisMax = opts.axisMax || niceMax(maxVal*1.15 || 1);
+  var ticks = makeTicks(axisMax,4);
+  function y(v){ return marginT+plotH-(v/axisMax)*plotH; }
+  var catW = plotW/opts.categories.length;
+  var barW = Math.min(catW*0.46, 68);
+
+  var grid='', axisLbl='';
+  ticks.forEach(function(t){
+    var yy=y(t);
+    grid += '<line x1="'+marginL+'" x2="'+(W-marginR)+'" y1="'+yy+'" y2="'+yy+'" class="grid-line"/>';
+    axisLbl += '<text x="'+(marginL-8)+'" y="'+(yy+3)+'" text-anchor="end" class="chart-text">'+esc(opts.fmt(t))+'</text>';
+  });
+  grid += '<line x1="'+marginL+'" x2="'+(W-marginR)+'" y1="'+y(0)+'" y2="'+y(0)+'" class="axis-line"/>';
+
+  var bars='', catLbl='';
+  var nSeg = opts.segments.length;
+  opts.categories.forEach(function(cat,ci){
+    var cx = marginL+ci*catW+catW/2;
+    catLbl += '<text x="'+cx+'" y="'+(H-marginB+18)+'" text-anchor="middle" class="chart-text">'+esc(cat)+'</text>';
+    var bx = cx-barW/2;
+    var cum = 0;
+    opts.segments.forEach(function(seg,si){
+      var val = seg.values[ci]||0;
+      if(val<=0) return;
+      var yTop = y(cum+val), yBottom = y(cum);
+      if(si>0) yBottom -= 1;
+      if(si<nSeg-1) yTop += 1;
+      var h = yBottom-yTop;
+      if(h>0.4){
+        var r = si===nSeg-1? 4 : 0;
+        var path = roundedBarPath(bx,yTop,barW,h,r);
+        var rows=[[seg.label, opts.fmtFull? opts.fmtFull(val): opts.fmt(val)]];
+        var op = seg.opacity!=null? ' fill-opacity="'+seg.opacity+'"' : '';
+        bars += '<path d="'+path+'" class="'+seg.cls+' bar-hit"'+op+' '+tipAttr(cat+' – '+seg.label, rows)+'></path>';
+        if(opts.segmentLabels && h>20){
+          var lblColor = seg.labelColor || (seg.cls==='mark-muted'? 'var(--text-secondary)' : '#fff');
+          bars += '<text x="'+(bx+barW/2)+'" y="'+((yTop+yBottom)/2+3.5)+'" text-anchor="middle" class="seg-label" style="fill:'+lblColor+'">'+esc(opts.fmtShort?opts.fmtShort(val):opts.fmt(val))+'</text>';
+        }
+      }
+      cum += val;
+    });
+    if(opts.totalLabel!==false && cum>0){
+      bars += '<text x="'+(bx+barW/2)+'" y="'+(y(cum)-7)+'" text-anchor="middle" class="chart-text-strong">'+esc(opts.fmtShort?opts.fmtShort(cum):opts.fmt(cum))+'</text>';
+    }
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img">'+grid+bars+axisLbl+catLbl+'</svg>';
+}
+
+/* ---------------- multi-series line chart ---------------- */
+function svgLineMulti(opts){
+  var W=600, H=opts.height||250;
+  var marginL=56, marginR=18, marginT=22, marginB=32;
+  var plotW=W-marginL-marginR, plotH=H-marginT-marginB;
+  var allVals=[];
+  opts.series.forEach(function(s){ s.values.forEach(function(v){ if(v!=null) allVals.push(v); }); });
+  var maxVal = Math.max.apply(null,[0].concat(allVals));
+  var axisMax = niceMax(maxVal*1.25 || 1);
+  var ticks = makeTicks(axisMax,4);
+  function y(v){ return marginT+plotH-(v/axisMax)*plotH; }
+  var n = opts.categories.length;
+  function x(i){ return n>1? marginL+i*(plotW/(n-1)) : marginL+plotW/2; }
+
+  var grid='', axisLbl='';
+  ticks.forEach(function(t){
+    var yy=y(t);
+    grid += '<line x1="'+marginL+'" x2="'+(W-marginR)+'" y1="'+yy+'" y2="'+yy+'" class="grid-line"/>';
+    axisLbl += '<text x="'+(marginL-8)+'" y="'+(yy+3)+'" text-anchor="end" class="chart-text">'+esc(opts.fmt(t))+'</text>';
+  });
+  grid += '<line x1="'+marginL+'" x2="'+(W-marginR)+'" y1="'+y(0)+'" y2="'+y(0)+'" class="axis-line"/>';
+  var catLbl='';
+  opts.categories.forEach(function(cat,i){
+    catLbl += '<text x="'+x(i)+'" y="'+(H-marginB+18)+'" text-anchor="middle" class="chart-text">'+esc(cat)+'</text>';
+  });
+
+  /* per-index label placement: when series are close together or cross, a fixed
+     above/below-per-series assignment collides. Rank points at each x by pixel
+     height and hand the top one an "above" label, the bottom one "below", pulling
+     them further apart than usual whenever the points themselves are close. */
+  var labelY = opts.series.map(function(){ return {}; });
+  opts.categories.forEach(function(cat,i){
+    var pts=[];
+    opts.series.forEach(function(s,si){
+      var v = s.values[i];
+      if(v==null) return;
+      pts.push({si:si, cy:y(v)});
+    });
+    if(!pts.length) return;
+    pts.sort(function(a,b){ return a.cy-b.cy; });
+    var top = pts[0], bottom = pts[pts.length-1];
+    var close = (bottom.cy-top.cy) < 20;
+    labelY[top.si][i] = top.cy - (close?14:11);
+    labelY[bottom.si][i] = bottom.cy + (close?20:17);
+    for(var k=1;k<pts.length-1;k++){ labelY[pts[k].si][i] = pts[k].cy + 17 + k*12; }
+  });
+
+  var marks='';
+  opts.series.forEach(function(s,si){
+    var pts=[], dots='';
+    s.values.forEach(function(v,i){
+      if(v==null) return;
+      var cx=x(i), cy=y(v);
+      pts.push(cx+','+cy);
+      var rows=[[s.label, opts.fmtFull?opts.fmtFull(v):opts.fmt(v)]];
+      dots += '<circle cx="'+cx+'" cy="'+cy+'" r="10" fill="transparent" class="pt-hit" '+tipAttr(opts.categories[i], rows)+'></circle>'+
+              '<circle cx="'+cx+'" cy="'+cy+'" r="4.5" class="'+s.cls+' ring" style="pointer-events:none"></circle>';
+      if(opts.valueLabels!==false){
+        var ly = labelY[si][i];
+        /* the leftmost point sits right at the y-axis tick labels' height; nudge its
+           value label clear of them instead of centering it on the axis */
+        var anchor = i===0? 'start' : 'middle';
+        var lx = i===0? cx+6 : cx;
+        dots += '<text x="'+lx+'" y="'+ly+'" text-anchor="'+anchor+'" class="chart-text-strong">'+esc(opts.fmtShort?opts.fmtShort(v):opts.fmt(v))+'</text>';
+      }
+    });
+    var lineCls = s.cls==='mark-discount'?'line-discount': s.cls==='mark-point'?'line-point':'';
+    marks += (pts.length>1? '<path d="M'+pts.join(' L')+'" class="'+lineCls+'"></path>' : '') + dots;
+  });
+  return '<svg viewBox="0 0 '+W+' '+H+'" role="img">'+grid+marks+axisLbl+catLbl+'</svg>';
+}
+
+/* ---------------- KPI tiles ---------------- */
+function sparkline(values, lineCls){
+  var w=120,h=26,pad=3, n=values.length;
+  var known = values.filter(function(v){return v!=null;});
+  var max=Math.max.apply(null,known.concat([1])), min=Math.min.apply(null,known.concat([0]));
+  if(max===min) max=min+1;
+  function xs(i){ return pad+i*(w-2*pad)/(n-1); }
+  function ys(v){ return h-pad-((v-min)/(max-min))*(h-2*pad); }
+  var pts=[], dots='';
+  values.forEach(function(v,i){
+    if(v==null) return;
+    pts.push(xs(i)+','+ys(v));
+    dots += '<circle cx="'+xs(i)+'" cy="'+ys(v)+'" r="2.4" class="'+lineCls+'" stroke="none"></circle>';
+  });
+  var path = pts.length? '<path d="M'+pts.join(' L')+'" class="'+(lineCls==='mark-discount'?'line-discount':'line-point')+'"></path>':'';
+  return '<svg class="spark" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none">'+path+dots+'</svg>';
+}
+function deltaHtml(pct, mode){
+  if(pct==null) return '<span class="delta flat">vs prior mo.: n/a</span>';
+  var up = pct>0.0001, down = pct<-0.0001;
+  var good = mode==='good-up'? up : mode==='bad-up'? down : null;
+  var cls = good===null? 'flat' : (good? 'up':'down');
+  var arrow = up?'▲':down?'▼':'–';
+  return '<span class="delta '+cls+'">'+arrow+' '+Math.abs(pct*100).toFixed(1)+'% vs prior mo.</span>';
+}
+/* for ratio metrics (like %CIR) a plain % change of the ratio is hard to read;
+   percentage-point change (the arithmetic difference, not the relative change) is
+   the conventional way to express how much a rate itself moved */
+function deltaHtmlPP(diffPP, mode){
+  if(diffPP==null) return '<span class="delta flat">vs prior mo.: n/a</span>';
+  var up = diffPP>0.05, down = diffPP<-0.05;
+  var good = mode==='good-up'? up : mode==='bad-up'? down : null;
+  var cls = good===null? 'flat' : (good? 'up':'down');
+  var arrow = up?'▲':down?'▼':'–';
+  return '<span class="delta '+cls+'">'+arrow+' '+Math.abs(diffPP).toFixed(1)+'pp vs prior mo.</span>';
+}
+/* compact, no-suffix variant for use inside a table cell rather than a KPI tile */
+function deltaCellCompact(pct, mode){
+  if(pct==null) return '<span class="delta flat">–</span>';
+  var up = pct>0.0001, down = pct<-0.0001;
+  var good = mode==='good-up'? up : mode==='bad-up'? down : null;
+  var cls = good===null? 'flat' : (good? 'up':'down');
+  var arrow = up?'▲':down?'▼':'–';
+  return '<span class="delta '+cls+'">'+arrow+' '+Math.abs(pct*100).toFixed(1)+'%</span>';
+}
+/* same compact table-cell style, but for an already-computed percentage-point
+   difference (used for %CIR MoM, where a relative % change of a rate is confusing) */
+function deltaCellCompactPP(diffPP, mode){
+  if(diffPP==null) return '<span class="delta flat">–</span>';
+  var up = diffPP>0.05, down = diffPP<-0.05;
+  var good = mode==='good-up'? up : mode==='bad-up'? down : null;
+  var cls = good===null? 'flat' : (good? 'up':'down');
+  var arrow = up?'▲':down?'▼':'–';
+  return '<span class="delta '+cls+'">'+arrow+' '+Math.abs(diffPP).toFixed(1)+'pp</span>';
+}
+function kpiTile(label, value, deltaMarkup, sub, sparkSvg){
+  return '<div class="kpi"><span class="label">'+esc(label)+'</span>'+
+    '<span class="value">'+esc(value)+'</span>'+
+    (sparkSvg||'')+
+    (deltaMarkup||'')+
+    (sub? '<span class="sub">'+esc(sub)+'</span>':'')+
+    '</div>';
+}
+
+function renderOverviewKpis(period){
+  period = period || 'All';
+  var platformTotal, discGmv, ptGmv, discCost, ptCost;
+  if(period==='All'){
+    platformTotal = MONTHS.reduce(function(a,m){ return a+DATA.platform.total_by_month[m]; },0);
+    discGmv = DATA.discount.total_all.gmv; ptGmv = DATA.point.total_all.gmv;
+    discCost = DATA.discount.total_all.cost; ptCost = DATA.point.total_all.cost;
+  } else {
+    platformTotal = DATA.platform.total_by_month[period];
+    discGmv = DATA.discount.totals_by_month[period].gmv; ptGmv = DATA.point.totals_by_month[period].gmv;
+    discCost = DATA.discount.totals_by_month[period].cost; ptCost = DATA.point.totals_by_month[period].cost;
+  }
+  var couponTotal = discGmv+ptGmv;
+  var penetration = couponTotal? couponTotal/platformTotal : 0;
+  var blendedCir = couponTotal? (discCost+ptCost)/couponTotal : 0;
+  var periodLabel = period==='All'? 'Jun–Aug' : period;
+  var html = '';
+  html += kpiTile('Total platform GMV ('+periodLabel+')', fmtMoney(platformTotal), null, 'Across all BUs');
+  html += kpiTile('Total coupon-attributed GMV', fmtMoney(couponTotal), null, fmtMoney(discGmv)+' discount + '+fmtMoney(ptGmv)+' point');
+  html += kpiTile('Coupon penetration of GMV', fmtPct(penetration), null, 'Share of platform GMV touched by a coupon');
+  html += kpiTile('Blended %CIR (both types)', fmtPct(blendedCir), null, 'Combined cost / combined coupon GMV');
+  document.getElementById('kpi-overview').innerHTML = html;
+}
+
+function renderTypeKpis(typeKey, period){
+  var d = DATA[typeKey];
+  var cls = typeKey==='discount'?'mark-discount':'mark-point';
+  var tbm = d.totals_by_month;
+  var idx = MONTHS.indexOf(period);
+  var cur, prev;
+  if(period==='All'){ cur=d.total_all; prev = tbm[MONTHS[MONTHS.length-2]]; }
+  else { cur = tbm[period]; prev = idx>0? tbm[MONTHS[idx-1]] : null; }
+  var deltaBasisCur = period==='All'? tbm[MONTHS[MONTHS.length-1]] : cur;
+  var deltaBasisPrev = prev;
+
+  function d1(key,mode){ return deltaHtml(momDelta(deltaBasisCur?deltaBasisCur[key]:null, deltaBasisPrev?deltaBasisPrev[key]:null), mode); }
+
+  var platformTotal = period==='All'? MONTHS.reduce(function(a,m){ return a+DATA.platform.total_by_month[m]; },0) : DATA.platform.total_by_month[period];
+  var gmvSharePct = platformTotal? cur.gmv/platformTotal : 0;
+  var platformCurMonth = period==='All'? MONTHS[MONTHS.length-1] : period;
+  var platformPrevMonth = period==='All'? MONTHS[MONTHS.length-2] : (idx>0? MONTHS[idx-1] : null);
+  var shareCur = deltaBasisCur? deltaBasisCur.gmv/DATA.platform.total_by_month[platformCurMonth] : null;
+  var sharePrev = (deltaBasisPrev && platformPrevMonth)? deltaBasisPrev.gmv/DATA.platform.total_by_month[platformPrevMonth] : null;
+
+  var uc = d.unique_customers_by_month;
+  var ucMonths = MONTHS.map(function(m){ return uc[m]==null?null:uc[m]; });
+  var ucHeadline = period==='All'? (uc[MONTHS[MONTHS.length-1]]!=null? uc[MONTHS[MONTHS.length-1]] : uc[MONTHS[MONTHS.length-2]]) : uc[period];
+  var ucPrev = period==='All'? uc[MONTHS[MONTHS.length-2]] : (idx>0? uc[MONTHS[idx-1]]:null);
+  var ucDeltaCur = period==='All'? uc[MONTHS[MONTHS.length-1]] : ucHeadline;
+
+  var html='';
+  html += kpiTile('Total GMV', fmtMoney(cur.gmv), d1('gmv','good-up'));
+  html += kpiTile('% of platform GMV', fmtPct(gmvSharePct), deltaHtml(momDelta(shareCur,sharePrev),'good-up'), 'Coupon GMV ÷ total platform GMV');
+  html += kpiTile('Total orders', fmtNum(cur.order), d1('order','good-up'));
+  html += kpiTile('Total cost', fmtMoney(cur.cost), d1('cost','neutral'));
+  html += kpiTile('Monthly used unique customers', ucHeadline==null?'pending':fmtNum(ucHeadline),
+            deltaHtml(momDelta(ucDeltaCur,ucPrev),'good-up'), null, sparkline(ucMonths, cls));
+  var cirPP = (deltaBasisCur && deltaBasisPrev)? (deltaBasisCur.cir - deltaBasisPrev.cir)*100 : null;
+  html += kpiTile('%CIR (cost / coupon GMV)', fmtPct(cur.cir), deltaHtmlPP(cirPP,'bad-up'));
+  html += kpiTile('AOV (GMV / order)', fmtMoney(cur.aov), d1('aov','good-up'));
+  html += kpiTile('ACPO (cost / order)', fmtMoney(cur.acpo), d1('acpo','bad-up'));
+  document.getElementById('kpi-'+typeKey).innerHTML = html;
+}
+
+/* ---------------- overview charts (always show the full Jun-Aug trend) ---------------- */
+function renderOverviewCharts(){
+  var mCur = 1e6;
+  document.getElementById('chart-platform-vs-coupon').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series: [
+      {cls:'mark-muted', label:'Platform GMV', values: MONTHS.map(function(m){return DATA.platform.total_by_month[m]/mCur;})},
+      {cls:'mark-discount', label:'Discount coupon GMV', values: MONTHS.map(function(m){return DATA.discount.totals_by_month[m].gmv/mCur;})},
+      {cls:'mark-point', label:'Point coupon GMV', values: MONTHS.map(function(m){return DATA.point.totals_by_month[m].gmv/mCur;})}
+    ],
+    fmt: function(v){ return '฿'+v.toFixed(0)+'M'; },
+    fmtShort: function(v){ return v.toFixed(1); },
+    fmtFull: function(v){ return fmtMoneyFull(v*mCur); }
+  });
+
+  document.getElementById('chart-coupon-share').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series: [
+      {cls:'mark-discount', label:'Discount coupon share', values: MONTHS.map(function(m){return DATA.discount.totals_by_month[m].gmv/DATA.platform.total_by_month[m]*100;})},
+      {cls:'mark-point', label:'Point coupon share', values: MONTHS.map(function(m){return DATA.point.totals_by_month[m].gmv/DATA.platform.total_by_month[m]*100;})}
+    ],
+    fmt: function(v){ return v.toFixed(0)+'%'; },
+    fmtShort: function(v){ return v.toFixed(1)+'%'; },
+    fmtFull: function(v){ return v.toFixed(2)+'%'; }
+  });
+}
+
+function pctChangeText(curr,prev){
+  var d = momDelta(curr,prev);
+  if(d==null) return 'n/a';
+  return (d>0?'+':'')+(d*100).toFixed(1)+'%';
+}
+
+function renderTrendCharts(){
+  var jul='Jul', aug='Aug';
+  document.getElementById('chart-monthly-gmv').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return DATA.discount.totals_by_month[m].gmv;})},
+      {cls:'mark-point', label:'Point coupon', values: MONTHS.map(function(m){return DATA.point.totals_by_month[m].gmv;})}
+    ], fmt: fmtMoney, fmtFull: fmtMoneyFull
+  }) + '<p class="cap" style="margin-top:8px;">Aug vs Jul: discount coupon GMV '+pctChangeText(DATA.discount.totals_by_month[aug].gmv,DATA.discount.totals_by_month[jul].gmv)+
+       ', point coupon GMV '+pctChangeText(DATA.point.totals_by_month[aug].gmv,DATA.point.totals_by_month[jul].gmv)+'.</p>';
+
+  document.getElementById('chart-monthly-cost').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return DATA.discount.totals_by_month[m].cost;})},
+      {cls:'mark-point', label:'Point coupon', values: MONTHS.map(function(m){return DATA.point.totals_by_month[m].cost;})}
+    ], fmt: fmtMoney, fmtFull: fmtMoneyFull
+  });
+
+  document.getElementById('chart-monthly-cir').innerHTML = svgLineMulti({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return DATA.discount.totals_by_month[m].cir*100;})},
+      {cls:'mark-point', label:'Point coupon', labelBelow:true, values: MONTHS.map(function(m){return DATA.point.totals_by_month[m].cir*100;})}
+    ], fmt: function(v){return v.toFixed(0)+'%';}, fmtShort:function(v){return v.toFixed(1)+'%';}, fmtFull:function(v){return v.toFixed(2)+'%';}
+  });
+
+  document.getElementById('chart-monthly-uniq').innerHTML = svgLineMulti({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return DATA.discount.unique_customers_by_month[m];})},
+      {cls:'mark-point', label:'Point coupon', labelBelow:true, values: MONTHS.map(function(m){return DATA.point.unique_customers_by_month[m];})}
+    ], fmt: fmtNum, fmtFull: fmtNum
+  });
+}
+
+/* ---------------- Trend dashboard: same 4-chart layout, scoped to one BU ---------------- */
+function renderTrendChartsByBu(bu){
+  var lbl = '(' + bu + ')';
+  ['gmv','cost','cir','uniq','aov','acpo'].forEach(function(k){
+    var el = document.getElementById('bu-trend-label-'+k);
+    if(el) el.textContent = lbl;
+  });
+
+  function rec(typeKey, m){
+    var b = DATA[typeKey].by_bu[bu];
+    return b ? b.by_month[m] : {gmv:0, cost:0, cir:0, uniq:0, aov:0, acpo:0};
+  }
+
+  var jul='Jul', aug='Aug';
+  document.getElementById('chart-bu-trend-gmv').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return rec('discount',m).gmv;})},
+      {cls:'mark-point', label:'Point coupon', values: MONTHS.map(function(m){return rec('point',m).gmv;})}
+    ], fmt: fmtMoney, fmtFull: fmtMoneyFull
+  }) + '<p class="cap" style="margin-top:8px;">Aug vs Jul: discount coupon GMV '+pctChangeText(rec('discount',aug).gmv,rec('discount',jul).gmv)+
+       ', point coupon GMV '+pctChangeText(rec('point',aug).gmv,rec('point',jul).gmv)+'.</p>';
+
+  document.getElementById('chart-bu-trend-cost').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return rec('discount',m).cost;})},
+      {cls:'mark-point', label:'Point coupon', values: MONTHS.map(function(m){return rec('point',m).cost;})}
+    ], fmt: fmtMoney, fmtFull: fmtMoneyFull
+  });
+
+  document.getElementById('chart-bu-trend-cir').innerHTML = svgLineMulti({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return rec('discount',m).cir*100;})},
+      {cls:'mark-point', label:'Point coupon', labelBelow:true, values: MONTHS.map(function(m){return rec('point',m).cir*100;})}
+    ], fmt: function(v){return v.toFixed(0)+'%';}, fmtShort:function(v){return v.toFixed(1)+'%';}, fmtFull:function(v){return v.toFixed(2)+'%';}
+  });
+
+  document.getElementById('chart-bu-trend-uniq').innerHTML = svgLineMulti({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return rec('discount',m).uniq;})},
+      {cls:'mark-point', label:'Point coupon', labelBelow:true, values: MONTHS.map(function(m){return rec('point',m).uniq;})}
+    ], fmt: fmtNum, fmtFull: fmtNum
+  });
+
+  document.getElementById('chart-bu-trend-aov').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return rec('discount',m).aov;})},
+      {cls:'mark-point', label:'Point coupon', values: MONTHS.map(function(m){return rec('point',m).aov;})}
+    ], fmt: fmtMoney, fmtFull: fmtMoneyFull
+  });
+
+  document.getElementById('chart-bu-trend-acpo').innerHTML = svgGroupedBar({
+    categories: MONTHS,
+    series:[
+      {cls:'mark-discount', label:'Discount coupon', values: MONTHS.map(function(m){return rec('discount',m).acpo;})},
+      {cls:'mark-point', label:'Point coupon', values: MONTHS.map(function(m){return rec('point',m).acpo;})}
+    ], fmt: fmtMoney, fmtFull: fmtMoneyFull
+  });
+}
+
+function populateTrendBuFilter(){
+  var buNames = Object.keys(DATA.platform.by_bu).sort(function(a,b){
+    var ta = MONTHS.reduce(function(s,m){return s+DATA.platform.by_bu[a][m];},0);
+    var tb = MONTHS.reduce(function(s,m){return s+DATA.platform.by_bu[b][m];},0);
+    return tb-ta;
+  });
+  var sel = document.getElementById('filter-bu-trend');
+  sel.innerHTML = buNames.map(function(b){ return '<option value="'+esc(b)+'">'+esc(b)+'</option>'; }).join('');
+  sel.value = buNames[0];
+  sel.addEventListener('change', function(){ renderTrendChartsByBu(sel.value); });
+  return buNames[0];
+}
+
+/* ---------------- BU section: stacked Total-vs-Coupon GMV chart + table
+   with platform GMV and %coupon-contribution split out by month ---------------- */
+function renderBuCharts(period){
+  period = period || 'All';
+  var dBu = DATA.discount.by_bu, pBu = DATA.point.by_bu;
+  var buNames = Object.keys(DATA.platform.by_bu);
+
+  /* MoM always compares to the prior calendar month, even when the period
+     selector is "All" (Jun–Aug) — there we fall back to Aug vs Jul, same
+     convention already used by the KPI tiles elsewhere on the dashboard */
+  var idx = MONTHS.indexOf(period);
+  var curMonth = period==='All'? MONTHS[MONTHS.length-1] : period;
+  var prevMonth = period==='All'? MONTHS[MONTHS.length-2] : (idx>0? MONTHS[idx-1] : null);
+  /* MoM figures always compare specific calendar months (curMonth vs prevMonth),
+     regardless of which period is selected for the displayed values themselves */
+  function monthRec(typeKey, bu, m){
+    var b = DATA[typeKey].by_bu[bu];
+    return b ? b.by_month[m] : null;
+  }
+
+  var rows = buNames.map(function(bu){
+    var platformGmv, dRec, pRec;
+    if(period==='All'){
+      platformGmv = MONTHS.reduce(function(a,m){ return a+DATA.platform.by_bu[bu][m]; },0);
+      dRec = dBu[bu]? dBu[bu].all : null;
+      pRec = pBu[bu]? pBu[bu].all : null;
+    } else {
+      platformGmv = DATA.platform.by_bu[bu][period];
+      dRec = dBu[bu]? dBu[bu].by_month[period] : null;
+      pRec = pBu[bu]? pBu[bu].by_month[period] : null;
+    }
+    var dg = dRec? dRec.gmv:0;
+    var pg = pRec? pRec.gmv:0;
+    var dcir = dRec? dRec.cir:null;
+    var pcir = pRec? pRec.cir:null;
+    var daov = dRec? dRec.aov:null;
+    var paov = pRec? pRec.aov:null;
+
+    var dCur = monthRec('discount',bu,curMonth), dPrev = prevMonth? monthRec('discount',bu,prevMonth) : null;
+    var pCur = monthRec('point',bu,curMonth), pPrev = prevMonth? monthRec('point',bu,prevMonth) : null;
+    var platCur = DATA.platform.by_bu[bu][curMonth], platPrev = prevMonth? DATA.platform.by_bu[bu][prevMonth] : null;
+
+    return {bu:bu, platformGmv:platformGmv, dg:dg, pg:pg,
+            pctD: platformGmv? dg/platformGmv : 0, pctP: platformGmv? pg/platformGmv : 0,
+            dcir:dcir, pcir:pcir, daov:daov, paov:paov,
+            platformMoM: prevMonth? momDelta(platCur, platPrev) : null,
+            dgMoM: momDelta(dCur? dCur.gmv:null, dPrev? dPrev.gmv:null),
+            pgMoM: momDelta(pCur? pCur.gmv:null, pPrev? pPrev.gmv:null),
+            daovMoM: momDelta(dCur? dCur.aov:null, dPrev? dPrev.aov:null),
+            paovMoM: momDelta(pCur? pCur.aov:null, pPrev? pPrev.aov:null),
+            dcirMoMpp: (dCur && dPrev)? (dCur.cir-dPrev.cir)*100 : null,
+            pcirMoMpp: (pCur && pPrev)? (pCur.cir-pPrev.cir)*100 : null};
+  }).sort(function(a,b){ return b.platformGmv-a.platformGmv; });
+
+  /* stacked bar: discount GMV + point GMV + remaining (non-coupon) platform GMV = total bar height */
+  var cats = rows.map(function(r){ return r.bu; });
+  document.getElementById('chart-bu-stacked').innerHTML = svgStackedBar({
+    categories: cats,
+    segments: [
+      {cls:'mark-discount', label:'Discount coupon GMV', values: rows.map(function(r){ return r.dg; })},
+      {cls:'mark-point', label:'Point coupon GMV', values: rows.map(function(r){ return r.pg; })},
+      {cls:'mark-muted', label:'Non-coupon GMV', opacity:0.32, values: rows.map(function(r){ return Math.max(r.platformGmv-r.dg-r.pg,0); })}
+    ],
+    fmt: fmtMoney, fmtShort: fmtMoney, fmtFull: fmtMoneyFull, height:300,
+    axisMax: 350e6, segmentLabels: true
+  });
+  var periodLabel = period==='All'? 'Jun–Aug' : period;
+  document.getElementById('legend-bu-stacked').innerHTML =
+    '<span class="item">'+legendSwatch('--series-1')+'Discount coupon GMV</span>'+
+    '<span class="item">'+legendSwatch('--series-2')+'Point coupon GMV</span>'+
+    '<span class="item">'+legendSwatch('--text-muted', 0.32)+'Non-coupon GMV</span>'+
+    '<span class="item">Bar top = total platform GMV, '+esc(periodLabel)+'</span>';
+
+  var body = rows.map(function(r){
+    return '<tr><td class="name">'+esc(r.bu)+'</td>'+
+      '<td>'+esc(fmtMoney(r.platformGmv))+'</td>'+
+      '<td>'+deltaCellCompact(r.platformMoM,'good-up')+'</td>'+
+      '<td>'+esc(r.dg?fmtMoney(r.dg):'–')+'</td>'+
+      '<td>'+deltaCellCompact(r.dgMoM,'good-up')+'</td>'+
+      '<td>'+esc(r.pg?fmtMoney(r.pg):'–')+'</td>'+
+      '<td>'+deltaCellCompact(r.pgMoM,'good-up')+'</td>'+
+      '<td>'+esc(r.daov!=null?fmtMoney(r.daov):'–')+'</td>'+
+      '<td>'+deltaCellCompact(r.daovMoM,'good-up')+'</td>'+
+      '<td>'+esc(r.paov!=null?fmtMoney(r.paov):'–')+'</td>'+
+      '<td>'+deltaCellCompact(r.paovMoM,'good-up')+'</td>'+
+      '<td>'+esc(fmtPct(r.pctD))+'</td>'+
+      '<td>'+esc(fmtPct(r.pctP))+'</td>'+
+      '<td>'+esc(r.dcir!=null?fmtPct(r.dcir):'–')+'</td>'+
+      '<td>'+deltaCellCompactPP(r.dcirMoMpp,'bad-up')+'</td>'+
+      '<td>'+esc(r.pcir!=null?fmtPct(r.pcir):'–')+'</td>'+
+      '<td>'+deltaCellCompactPP(r.pcirMoMpp,'bad-up')+'</td></tr>';
+  }).join('');
+  document.getElementById('table-bu-body').innerHTML = body;
+}
+
+/* ---------------- mechanics table (client-side aggregation so it can be
+   sliced by month and BU on the fly) ---------------- */
+var TABLE_STATE = {
+  discount:{sortKey:'gmv', sortDir:-1, search:'', month:'All', bu:'All'},
+  point:{sortKey:'gmv', sortDir:-1, search:'', month:'All', bu:'All'}
+};
+var MECH_TOTAL_COUNT = {};
+var COLS = [
+  {key:'name', label:'Coupon mechanic'},
+  {key:'bu', label:'BU Lv1'},
+  {key:'gmv', label:'GMV', fmt:fmtMoney},
+  {key:'order', label:'Orders', fmt:fmtNum},
+  {key:'cost', label:'Cost', fmt:fmtMoney},
+  {key:'cir', label:'%CIR', fmt:function(v){return fmtPct(v);}},
+  {key:'aov', label:'AOV', fmt:fmtMoney},
+  {key:'acpo', label:'ACPO', fmt:fmtMoney},
+  {key:'quadrant', label:'Recommendation'}
+];
+var QUAD_LABEL = {star:'Scale-up', grow:'Optimize', niche:'Growth', cut:'Reconsider'};
+
+function aggregateMechanics(typeKey, monthFilter, buFilter){
+  var raw = DATA[typeKey].raw;
+  var byName = {};
+  for(var i=0;i<raw.length;i++){
+    var r = raw[i];
+    if(monthFilter!=='All' && r.month!==monthFilter) continue;
+    if(buFilter!=='All' && r.bu1!==buFilter) continue;
+    var e = byName[r.name];
+    if(!e){ e = byName[r.name] = {name:r.name, gmv:0, order:0, cost:0, buSet:{}}; }
+    e.gmv += r.gmv; e.order += r.order; e.cost += r.cost; e.buSet[r.bu1]=true;
+  }
+  var list = Object.keys(byName).map(function(k){
+    var e = byName[k];
+    return {
+      name:e.name, bu:Object.keys(e.buSet).sort().join(', '),
+      gmv:e.gmv, order:e.order, cost:e.cost,
+      cir: e.gmv? e.cost/e.gmv:0, aov: e.order? e.gmv/e.order:0, acpo: e.order? e.cost/e.order:0
+    };
+  });
+  var active = list.filter(function(m){ return m.gmv>0; });
+  var gmvs = active.map(function(m){return m.gmv;}).sort(function(a,b){return a-b;});
+  var cirs = active.map(function(m){return m.cir;}).sort(function(a,b){return a-b;});
+  var medGmv = median(gmvs), medCir = median(cirs);
+  active.forEach(function(m){
+    var highGmv = m.gmv>=medGmv, highCir = m.cir>=medCir;
+    m.quadrant = highGmv&&!highCir? 'star' : (highGmv&&highCir? 'grow' : (!highGmv&&!highCir? 'niche':'cut'));
+  });
+  return active;
+}
+
+function populateMechFilters(){
+  ['discount','point'].forEach(function(typeKey){
+    MECH_TOTAL_COUNT[typeKey] = aggregateMechanics(typeKey,'All','All').length;
+    var monthSel = document.getElementById('filter-month-'+typeKey);
+    monthSel.innerHTML = '<option value="All">All months (Jun–Aug)</option>' +
+      MONTHS.map(function(m){ return '<option value="'+m+'">'+m+' only</option>'; }).join('');
+    var bus = Array.from(new Set(DATA[typeKey].raw.map(function(r){return r.bu1;}))).sort();
+    var buSel = document.getElementById('filter-bu-'+typeKey);
+    buSel.innerHTML = '<option value="All">All BUs</option>' +
+      bus.map(function(b){ return '<option value="'+esc(b)+'">'+esc(b)+'</option>'; }).join('');
+  });
+}
+
+function renderMechTable(typeKey){
+  var state = TABLE_STATE[typeKey];
+  var rows = aggregateMechanics(typeKey, state.month, state.bu);
+  var sliceCount = rows.length;
+  var search = state.search.toLowerCase();
+  if(search){
+    rows = rows.filter(function(r){ return r.name.toLowerCase().indexOf(search)>=0 || r.bu.toLowerCase().indexOf(search)>=0; });
+  }
+  rows = rows.slice().sort(function(a,b){
+    var av=a[state.sortKey], bv=b[state.sortKey];
+    if(typeof av==='string') return state.sortDir*av.localeCompare(bv);
+    return state.sortDir*((av||0)-(bv||0));
+  });
+
+  var thead = '<thead><tr>'+COLS.map(function(c){
+    var sorted = c.key===state.sortKey;
+    var arrow = sorted? (state.sortDir===1?' ↑':' ↓') : '';
+    return '<th data-key="'+c.key+'" class="'+(sorted?'sorted':'')+'">'+esc(c.label)+arrow+'</th>';
+  }).join('')+'</tr></thead>';
+
+  var tbody = '<tbody>'+rows.map(function(r){
+    var cells = COLS.map(function(c){
+      if(c.key==='name') return '<td class="name">'+esc(r.name)+'</td>';
+      if(c.key==='bu') return '<td>'+esc(r.bu)+'</td>';
+      if(c.key==='quadrant') return '<td><span class="badge '+r.quadrant+'">'+QUAD_LABEL[r.quadrant]+'</span></td>';
+      return '<td>'+esc(c.fmt(r[c.key]))+'</td>';
+    }).join('');
+    return '<tr>'+cells+'</tr>';
+  }).join('')+'</tbody>';
+
+  /* grand total across whatever's currently shown (month/BU filter + search) */
+  var totGmv=0, totOrder=0, totCost=0;
+  rows.forEach(function(r){ totGmv+=r.gmv; totOrder+=r.order; totCost+=r.cost; });
+  var totCir = totGmv? totCost/totGmv : 0;
+  var totAov = totOrder? totGmv/totOrder : 0;
+  var totAcpo = totOrder? totCost/totOrder : 0;
+  var totVals = {gmv:totGmv, order:totOrder, cost:totCost, cir:totCir, aov:totAov, acpo:totAcpo};
+  var tfoot = '<tfoot><tr class="total-row">'+COLS.map(function(c){
+    if(c.key==='name') return '<td class="name">Grand total</td>';
+    if(c.key==='bu' || c.key==='quadrant') return '<td>&ndash;</td>';
+    return '<td>'+esc(c.fmt(totVals[c.key]))+'</td>';
+  }).join('')+'</tr></tfoot>';
+
+  document.getElementById('table-'+typeKey).innerHTML = thead+tbody+tfoot;
+  var filterNote = (state.month!=='All'||state.bu!=='All')? ' matching the current filters' : '';
+  document.getElementById('showing-'+typeKey).textContent = 'Showing '+rows.length+' of '+sliceCount+' mechanics'+filterNote;
+  document.getElementById('count-'+typeKey).textContent = MECH_TOTAL_COUNT[typeKey];
+}
+
+/* ---------------- wiring ---------------- */
+function initSegControls(){
+  document.querySelectorAll('.seg').forEach(function(seg){
+    var key = seg.getAttribute('data-seg');
+    seg.addEventListener('click', function(e){
+      var btn = e.target.closest('button');
+      if(!btn) return;
+      seg.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      var period = btn.getAttribute('data-period');
+      if(key==='overview') renderOverviewKpis(period);
+      else if(key==='bu') renderBuCharts(period);
+      else renderTypeKpis(key, period);
+    });
+  });
+}
+function initTableControls(){
+  ['discount','point'].forEach(function(typeKey){
+    var state = TABLE_STATE[typeKey];
+    var search = document.getElementById('search-'+typeKey);
+    search.addEventListener('input', function(){ state.search = search.value; renderMechTable(typeKey); });
+    var monthSel = document.getElementById('filter-month-'+typeKey);
+    monthSel.addEventListener('change', function(){ state.month = monthSel.value; renderMechTable(typeKey); });
+    var buSel = document.getElementById('filter-bu-'+typeKey);
+    buSel.addEventListener('change', function(){ state.bu = buSel.value; renderMechTable(typeKey); });
+    document.getElementById('table-'+typeKey).addEventListener('click', function(e){
+      var th = e.target.closest('th');
+      if(!th) return;
+      var key = th.getAttribute('data-key');
+      if(state.sortKey===key) state.sortDir*=-1; else { state.sortKey=key; state.sortDir = (key==='name'||key==='bu')?1:-1; }
+      renderMechTable(typeKey);
+    });
+  });
+  document.querySelectorAll('.tabs-inline button').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('.tabs-inline button').forEach(function(b){ b.classList.remove('active'); });
+      document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+      btn.classList.add('active');
+      document.getElementById('panel-'+btn.getAttribute('data-tab')).classList.add('active');
+    });
+  });
+}
+
+renderOverviewKpis('All');
+renderTypeKpis('discount','All');
+renderTypeKpis('point','All');
+renderOverviewCharts();
+renderTrendCharts();
+renderTrendChartsByBu(populateTrendBuFilter());
+renderBuCharts('All');
+populateMechFilters();
+renderMechTable('discount');
+renderMechTable('point');
+initSegControls();
+initTableControls();
+
+})();
+
+</script>
